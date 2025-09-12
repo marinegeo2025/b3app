@@ -1,4 +1,3 @@
-// pages/api/calendar/[area].js
 import axios from "axios";
 import * as cheerio from "cheerio";
 import { createEvents } from "ics";
@@ -19,7 +18,6 @@ function cleanDate(d) {
   return match ? parseInt(match[1], 10) : null;
 }
 
-// Parse a bin table into { month: [dates...] } for a given keyword row (e.g., "Brue")
 function parseBinTable($, keyword) {
   const headers = [];
   $("thead th").each((i, th) => headers.push($(th).text().trim()));
@@ -53,26 +51,25 @@ function parseBinTable($, keyword) {
   return data;
 }
 
-// Convert parsed data to ICS events
 function buildEvents(binType, t, areaName, data) {
   const year = new Date().getFullYear();
   const events = [];
-
   for (const [month, days] of Object.entries(data)) {
     for (const day of days) {
       const monthIndex = new Date(`${month} 1, ${year}`).getMonth();
-      if (isNaN(monthIndex)) continue;
-      events.push({
-        title: `${t[`${binType}Button`]} (${areaName})`,
-        start: [year, monthIndex + 1, day],
-      });
+      if (!isNaN(monthIndex)) {
+        events.push({
+          title: `${t[`${binType}Button`]} (${areaName})`,
+          start: [year, monthIndex + 1, day],
+        });
+      }
     }
   }
   return events;
 }
 
 export default async function handler(req, res) {
-  const { area } = req.query; // "brue" or "barvas"
+  const { area } = req.query; // brue OR barvas
   const lang = req.query.lang === "en" ? "en" : "gd";
   const t = translations[lang];
 
@@ -83,13 +80,10 @@ export default async function handler(req, res) {
     validateBinTable($black, { expectedMonths: [], requiredKeyword: "Brue" });
     validateBinTable($black, { expectedMonths: [], requiredKeyword: "Barvas" });
 
-    const blackData = {};
-    ["Brue", "Barvas"].forEach((kw) => {
-      const part = parseBinTable($black, kw);
-      for (const [m, days] of Object.entries(part)) {
-        blackData[m] = (blackData[m] || []).concat(days);
-      }
-    });
+    const blackData = {
+      ...parseBinTable($black, "Brue"),
+      ...parseBinTable($black, "Barvas"),
+    };
 
     // --- Blue bins (Brue + Barvas together) ---
     const blueResp = await axios.get(BLUE_URL, { headers: { "User-Agent": "Mozilla/5.0" } });
@@ -97,15 +91,12 @@ export default async function handler(req, res) {
     validateBinTable($blue, { expectedMonths: [], requiredKeyword: "Brue" });
     validateBinTable($blue, { expectedMonths: [], requiredKeyword: "Barvas" });
 
-    const blueData = {};
-    ["Brue", "Barvas"].forEach((kw) => {
-      const part = parseBinTable($blue, kw);
-      for (const [m, days] of Object.entries(part)) {
-        blueData[m] = (blueData[m] || []).concat(days);
-      }
-    });
+    const blueData = {
+      ...parseBinTable($blue, "Brue"),
+      ...parseBinTable($blue, "Barvas"),
+    };
 
-    // --- Green bins (separate per area) ---
+    // --- Green bins (separate for each area) ---
     const greenResp = await axios.get(GREEN_URL, { headers: { "User-Agent": "Mozilla/5.0" } });
     const $green = cheerio.load(greenResp.data);
     validateBinTable($green, { expectedMonths: [], requiredKeyword: "Brue" });
@@ -132,15 +123,10 @@ export default async function handler(req, res) {
       return res.status(404).send(lang === "en" ? "Area not found" : "Cha deach sgìre a lorg");
     }
 
-    if (events.length === 0) {
-      return res.status(500).send(t.noData);
-    }
+    if (events.length === 0) return res.status(500).send(t.noData);
 
     const { error, value } = createEvents(events);
-    if (error) {
-      console.error("ICS Error:", error, events);
-      return res.status(500).send(t.errorFetching);
-    }
+    if (error) return res.status(500).send(t.errorFetching);
 
     res.setHeader("Content-Type", "text/calendar; charset=utf-8");
     res.setHeader(
