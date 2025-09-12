@@ -87,21 +87,29 @@ export default function Home() {
 
        <div style={{ marginTop: "20px" }}>
   <h3>{t.calendarHeader}</h3>
+
+  {/* Brue schedule */}
   <a
-    href={`/api/calendar/north?lang=${lang}`}
+    href={`/api/calendar/brue?lang=${lang}`}
     className="bin-link north-bin-link"
   >
-    <i className="fas fa-download icon"></i> {t.northSchedule}
+    <i className="fas fa-download icon"></i> Brue Bin Schedule
     <br />
-    <span className="subtext">{t.northVillages}</span>
+    <span className="subtext">
+      Brue: Am Baile-stigh (the inner village), Pairc Bhrù (Park Brue)
+    </span>
   </a>
+
+  {/* Barvas schedule */}
   <a
-    href={`/api/calendar/south?lang=${lang}`}
+    href={`/api/calendar/barvas?lang=${lang}`}
     className="bin-link south-bin-link"
   >
-    <i className="fas fa-download icon"></i> {t.southSchedule}
+    <i className="fas fa-download icon"></i> Barvas Bin Schedule
     <br />
-    <span className="subtext">{t.southVillages}</span>
+    <span className="subtext">
+      Barvas: Upper, Lower, Monard, Park Barvas, The Corners, Heatherhill, Loch Street
+    </span>
   </a>
 </div>
 
