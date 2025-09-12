@@ -1,20 +1,20 @@
-# 🌊 Ness Bin App 🗑️
+# 🌊 Brue and Barvas Bin App 🗑️
 
-**nessbinapp.com** — keeping Ness on time for bins so folk can do more important things like go surf 🤙  
+Keeping Brue and Barvas on time for bins so folk can do more important things like go surf 🤙  
 
 A simple, community tool that scrapes the **Comhairle nan Eilean Siar (CNES)** website and shows **live bin collection dates** for Ness villages.  
 Locals can check bin days on the site or download `.ics` calendar files to sync with Google/Apple/Outlook.
 
-💚 WE LOVE NESS 💚  
+💙 WESTSIDE FOREVER 💙  
 
 ---
 
 ## ✨ Features
 
 - ✅ **Black / Blue / Green bin scrapers** — live data from CNES tables  
-- ✅ **North & South Ness calendar downloads** (`.ics`)  
+- ✅ **Brue & Barvas calendar downloads** (`.ics`)  
 - ✅ Clean, mobile-friendly UI with big buttons  
-- ✅ Self-hosted on [Vercel](https://vercel.com) with custom domain: [nessbinapp.com](https://nessbinapp.com)  
+- ✅ Self-hosted on [Vercel](https://vercel.com) 
 - ✅ Shared CSS for consistent look across all pages  
 
 ---
@@ -40,22 +40,22 @@ Locals can check bin days on the site or download `.ics` calendar files to sync 
 
 ---
 
-## 🌍 Serving Ness
+## 🌍 Serving Brue and Barvas
 
 Villages covered:
-- **North Ness** → Knockaird, Fivepenny, Butt, Eoropie, Port of Ness, Lionel, Eorodale, Adabrock, Cross Skigersta  
-- **South Ness** → Habost, Swainbost, Cross, North Dell, South Dell  
+- **Brue** →  
+- **Barvas** →  
 
 ---
 
-## 💚 Credits
+## 💙 Credits
 
 Created by Alex Barnard  
-Built with love for the **Ness community**  
+Built with love for the **Westside community**  
 Hosted on Vercel  
 Data from: [CNES Bins and Recycling](https://www.cne-siar.gov.uk/bins-and-recycling/waste-recycling-collections-lewis-and-harris)  
 
-💚 WE LOVE NESS 💚  
+💙 WESTSIDE FOREVER 💙  
 
 ---
 
