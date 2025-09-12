@@ -11,7 +11,9 @@ body {
 body {
   background: #f7f7f7;
 }
-
+body.home-page h1 {
+  color: #1DA1F2; /* 💙 blue */
+}
 /* Page-specific themes */
 body.black-page {
   background: #f7f9fc; /* soft grey background */
