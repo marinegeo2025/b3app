@@ -3,7 +3,8 @@ import { Analytics } from "@vercel/analytics/next";
 function MyApp({ Component, pageProps }) {
   return (
     <>
-      <Component {...pageProps} />
+      <body className="home-page">
+        <Component {...pageProps} />
       <Analytics />
     </>
   );
