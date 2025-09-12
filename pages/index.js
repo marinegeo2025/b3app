@@ -55,7 +55,11 @@ export default function Home() {
           </button>
         </div>
 
-        <p className="villages">{t.villages}</p>
+        <p
+  className="villages"
+  dangerouslySetInnerHTML={{ __html: t.villages }}
+/>
+        
         <p>{t.selectBin}</p>
 
         <ul className="bin-list">
