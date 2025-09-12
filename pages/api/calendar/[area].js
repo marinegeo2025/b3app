@@ -6,9 +6,9 @@ import translations from "../../../lib/translations";
 import { validateBinTable } from "../../../lib/failsafe";
 
 const BLACK_URL =
-  "https://www.cne-siar.gov.uk/bins-and-recycling/waste-recycling-collections-lewis-and-harris/non-recyclable-waste-grey-bin-purple-sticker/thursday-collections";
+  "https://www.cne-siar.gov.uk/bins-and-recycling/waste-recycling-collections-lewis-and-harris/non-recyclable-waste-grey-bin-purple-sticker/wednesday-collections";
 const BLUE_URL =
-  "https://www.cne-siar.gov.uk/bins-and-recycling/waste-recycling-collections-lewis-and-harris/organic-food-and-garden-waste-and-mixed-recycling-blue-bin/wednesday-collections";
+  "https://www.cne-siar.gov.uk/bins-and-recycling/waste-recycling-collections-lewis-and-harris/organic-food-and-garden-waste-and-mixed-recycling-blue-bin/thursday-collections";
 const GREEN_URL =
   "https://www.cne-siar.gov.uk/bins-and-recycling/waste-recycling-collections-lewis-and-harris/glass-green-bin-collections/friday-collections";
 
@@ -19,7 +19,7 @@ function cleanDate(d) {
   return match ? parseInt(match[1], 10) : null;
 }
 
-// Parse a bin table into { month: [dates...] } for a given keyword row (e.g., "Ness")
+// Parse a bin table into { month: [dates...] } for a given keyword row (e.g., "Brue")
 function parseBinTable($, keyword) {
   const headers = [];
   $("thead th").each((i, th) => headers.push($(th).text().trim()));
@@ -53,44 +53,6 @@ function parseBinTable($, keyword) {
   return data;
 }
 
-// Parse black bins separately (Ness vs Galson)
-function parseBlackBins($) {
-  const headers = [];
-  $("thead th").each((i, th) => headers.push($(th).text().trim()));
-  if (headers.length === 0) {
-    $("tr").first().find("th,td").each((i, cell) => headers.push($(cell).text().trim()));
-  }
-
-  const ness = {};
-  const galson = {};
-
-  const rows = $("tbody tr").length ? $("tbody tr") : $("tr").slice(1);
-  rows.each((_, row) => {
-    const cells = $(row).find("th,td");
-    if (cells.length >= 2) {
-      const area = $(cells[0]).text().trim();
-      for (let i = 1; i < cells.length; i++) {
-        const month = headers[i];
-        const dates = $(cells[i]).text().trim();
-        if (month && dates && dates.toLowerCase() !== "n/a") {
-          const parts = dates
-            .split(",")
-            .map((x) => cleanDate(x))
-            .filter(Boolean);
-          if (parts.length) {
-            if (area.includes("Ness")) {
-              ness[month] = (ness[month] || []).concat(parts);
-            } else if (area.includes("Galson")) {
-              galson[month] = (galson[month] || []).concat(parts);
-            }
-          }
-        }
-      }
-    }
-  });
-  return { ness, galson };
-}
-
 // Convert parsed data to ICS events
 function buildEvents(binType, t, areaName, data) {
   const year = new Date().getFullYear();
@@ -101,7 +63,7 @@ function buildEvents(binType, t, areaName, data) {
       const monthIndex = new Date(`${month} 1, ${year}`).getMonth();
       if (isNaN(monthIndex)) continue;
       events.push({
-        title: `${t[`${binType}Button`]}`,
+        title: `${t[`${binType}Button`]} (${areaName})`,
         start: [year, monthIndex + 1, day],
       });
     }
@@ -110,51 +72,61 @@ function buildEvents(binType, t, areaName, data) {
 }
 
 export default async function handler(req, res) {
-  const { area } = req.query;
-  const lang = req.query.lang === "en" ? "en" : "gd"; // Gaelic default
+  const { area } = req.query; // "brue" or "barvas"
+  const lang = req.query.lang === "en" ? "en" : "gd";
   const t = translations[lang];
 
   try {
-    // --- Black bins ---
+    // --- Black bins (Brue + Barvas together) ---
     const blackResp = await axios.get(BLACK_URL, { headers: { "User-Agent": "Mozilla/5.0" } });
     const $black = cheerio.load(blackResp.data);
-    try {
-      validateBinTable($black, { expectedMonths: [], requiredKeyword: "Ness" });
-      validateBinTable($black, { expectedMonths: [], requiredKeyword: "Galson" });
-    } catch (err) {
-      return res.status(500).send(`
-        ⚠️ CNES website structure changed.<br/>
-        Please contact 
-        <a href="mailto:al@daisyscoldwatersurfteam.com">al@daisyscoldwatersurfteam.com</a>.
-      `);
-    }
-    const { ness, galson } = parseBlackBins($black);
+    validateBinTable($black, { expectedMonths: [], requiredKeyword: "Brue" });
+    validateBinTable($black, { expectedMonths: [], requiredKeyword: "Barvas" });
 
-    // --- Blue bins ---
+    const blackData = {};
+    ["Brue", "Barvas"].forEach((kw) => {
+      const part = parseBinTable($black, kw);
+      for (const [m, days] of Object.entries(part)) {
+        blackData[m] = (blackData[m] || []).concat(days);
+      }
+    });
+
+    // --- Blue bins (Brue + Barvas together) ---
     const blueResp = await axios.get(BLUE_URL, { headers: { "User-Agent": "Mozilla/5.0" } });
     const $blue = cheerio.load(blueResp.data);
-    validateBinTable($blue,  { expectedMonths: [], requiredKeyword: "Ness" });
-    const blueData = parseBinTable($blue, "Ness");
+    validateBinTable($blue, { expectedMonths: [], requiredKeyword: "Brue" });
+    validateBinTable($blue, { expectedMonths: [], requiredKeyword: "Barvas" });
 
-    // --- Green bins ---
+    const blueData = {};
+    ["Brue", "Barvas"].forEach((kw) => {
+      const part = parseBinTable($blue, kw);
+      for (const [m, days] of Object.entries(part)) {
+        blueData[m] = (blueData[m] || []).concat(days);
+      }
+    });
+
+    // --- Green bins (separate per area) ---
     const greenResp = await axios.get(GREEN_URL, { headers: { "User-Agent": "Mozilla/5.0" } });
     const $green = cheerio.load(greenResp.data);
-    validateBinTable($green, { expectedMonths: [], requiredKeyword: "Ness" });
-    const greenData = parseBinTable($green, "Ness");
+    validateBinTable($green, { expectedMonths: [], requiredKeyword: "Brue" });
+    validateBinTable($green, { expectedMonths: [], requiredKeyword: "Barvas" });
 
-    // Build events
+    const greenDataBrue = parseBinTable($green, "Brue");
+    const greenDataBarvas = parseBinTable($green, "Barvas");
+
+    // --- Build events ---
     let events = [];
-    if (area === "north") {
+    if (area === "brue") {
       events = [
-        ...buildEvents("black", t, lang === "en" ? "North Ness" : "Nis a Tuath", ness),
-        ...buildEvents("blue", t, "Nis", blueData),
-        ...buildEvents("green", t, "Nis", greenData),
+        ...buildEvents("black", t, "Brue & Barvas", blackData),
+        ...buildEvents("blue", t, "Brue & Barvas", blueData),
+        ...buildEvents("green", t, "Brue", greenDataBrue),
       ];
-    } else if (area === "south") {
+    } else if (area === "barvas") {
       events = [
-        ...buildEvents("black", t, lang === "en" ? "South Ness" : "Nis a Deas", galson),
-        ...buildEvents("blue", t, "Nis", blueData),
-        ...buildEvents("green", t, "Nis", greenData),
+        ...buildEvents("black", t, "Brue & Barvas", blackData),
+        ...buildEvents("blue", t, "Brue & Barvas", blueData),
+        ...buildEvents("green", t, "Barvas", greenDataBarvas),
       ];
     } else {
       return res.status(404).send(lang === "en" ? "Area not found" : "Cha deach sgìre a lorg");
@@ -173,7 +145,7 @@ export default async function handler(req, res) {
     res.setHeader("Content-Type", "text/calendar; charset=utf-8");
     res.setHeader(
       "Content-Disposition",
-      `attachment; filename="${area}-ness-bin-schedule-${lang}.ics"`
+      `attachment; filename="${area}-bin-schedule-${lang}.ics"`
     );
     res.send(value);
   } catch (err) {
@@ -181,4 +153,3 @@ export default async function handler(req, res) {
     res.status(500).send(`${t.errorFetching} ${err.message}`);
   }
 }
-
