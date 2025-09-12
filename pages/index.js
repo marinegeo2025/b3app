@@ -93,11 +93,9 @@ export default function Home() {
     href={`/api/calendar/brue?lang=${lang}`}
     className="bin-link north-bin-link"
   >
-    <i className="fas fa-download icon"></i> Brue Bin Schedule
+    <i className="fas fa-download icon"></i> {t.brueSchedule}
     <br />
-    <span className="subtext">
-      Brue: Am Baile-stigh (the inner village), Pairc Bhrù (Park Brue)
-    </span>
+    <span className="subtext">{t.brueVillages}</span>
   </a>
 
   {/* Barvas schedule */}
@@ -105,11 +103,9 @@ export default function Home() {
     href={`/api/calendar/barvas?lang=${lang}`}
     className="bin-link south-bin-link"
   >
-    <i className="fas fa-download icon"></i> Barvas Bin Schedule
+    <i className="fas fa-download icon"></i> {t.barvasSchedule}
     <br />
-    <span className="subtext">
-      Barvas: Upper, Lower, Monard, Park Barvas, The Corners, Heatherhill, Loch Street
-    </span>
+    <span className="subtext">{t.barvasVillages}</span>
   </a>
 </div>
 
