@@ -1,4 +1,4 @@
-import Head from "next/head";
+import Head from "next/head"; //Brue Forever :)
 import { useState, useEffect } from "react";
 import translations from "../lib/translations";   // in index.js
 
