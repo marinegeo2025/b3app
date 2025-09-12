@@ -39,16 +39,15 @@ export default async function handler(req, res) {
     }
     const months = headers.slice(1);
 
-    // --- Find combined Brue+Barvas row ---
+    // --- Find combined Brue+Barvas rows ---
     let cells = [];
     $("tr").each((_, row) => {
       const tds = $(row).find("td");
       if (
         tds.length &&
-        (tds[0].text().includes("Brue") ||
-          tds[0].text().includes("Barvas"))
+        ($(tds[0]).text().includes("Brue") ||
+          $(tds[0]).text().includes("Barvas"))
       ) {
-        // Merge all dates for Brue + Barvas
         const rowCells = tds
           .slice(1)
           .map((_, td) => $(td).text().trim())
