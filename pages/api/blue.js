@@ -1,14 +1,26 @@
 import fs from "fs";
 import path from "path";
 
-// Helper: group date strings by month
+// ✅ Helper: group date strings by month, with next-year labels like the Ness page
 function groupByMonth(dates) {
   const groups = {};
+  const now = new Date();
+  const currentYear = now.getFullYear();
+  const currentMonth = now.getMonth(); // 0 = Jan, 11 = Dec
+
   dates.forEach((d) => {
     const [month] = d.split(" ");
-    groups[month] = groups[month] || [];
-    groups[month].push(d);
+    let monthLabel = month;
+
+    // 🧭 Add next-year label if scraper runs in December and month is Jan–Mar
+    if (currentMonth === 11 && /^(January|February|March)$/i.test(month)) {
+      monthLabel = `${month} ${currentYear + 1}`;
+    }
+
+    groups[monthLabel] = groups[monthLabel] || [];
+    groups[monthLabel].push(d);
   });
+
   return Object.entries(groups);
 }
 
@@ -22,18 +34,19 @@ export default async function handler(req, res) {
       `);
     }
 
+    // 🗂 Load JSON
     const json = JSON.parse(fs.readFileSync(filePath, "utf8"));
     const results = json.results || [];
     const lastUpdated = new Date(json.lastUpdated).toLocaleString("en-GB", {
       timeZone: "Europe/London",
     });
 
-    // Return raw JSON if requested (for debugging)
+    // 🧩 Return raw JSON for debugging if requested
     if (req.query.format === "json") {
       return res.status(200).json(json);
     }
 
-    // Filter to just Barvas & Brue entries (they share schedule)
+    // 🧭 Filter to just Barvas & Brue entries (they share schedule)
     const barvasBrue = results.filter((r) =>
       /brue|barvas/i.test(r.area)
     );
@@ -79,7 +92,7 @@ export default async function handler(req, res) {
               : "<p>No data found for Brue or Barvas.</p>"
           }
 
-          <p><em>LAST UPDATED: ${lastUpdated}</em></p>
+          <p class="last-updated"><em>LAST UPDATED: ${lastUpdated}</em></p>
           <a class="back" href="/?lang=en">← Back</a>
         </div>
       </body>
