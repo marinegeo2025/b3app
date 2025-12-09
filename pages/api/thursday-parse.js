@@ -15,7 +15,7 @@ export default async function handler(req, res) {
 
     // ✅ Otherwise render as styled HTML (same visual as before)
     const results = data.results || [];
-    const lastUpdated = new Date(data.lastupdated).toLocaleString("en-GB", {
+    const lastUpdated = new Date(data.lastUpdated).toLocaleString("en-GB", {
       timeZone: "Europe/London",
     });
 
