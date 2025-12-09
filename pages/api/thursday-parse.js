@@ -14,6 +14,7 @@ export default async function handler(req, res) {
     });
     const $ = cheerio.load(response.data);
 
+    // --- Extract month headers ---
     const headers = [];
     $("thead th").each((_, th) => headers.push($(th).text().trim()));
     if (headers.length === 0) {
@@ -24,41 +25,55 @@ export default async function handler(req, res) {
     }
     const months = headers.slice(1);
 
-    const results = [];
+    // --- Find Brue + Barvas rows and merge ---
+    let combined = new Array(months.length).fill("");
     $("tbody tr, tr").each((_, row) => {
-      const cells = $(row).find("th,td");
+      const cells = $(row).find("td");
       if (cells.length >= 2) {
-        const area = $(cells[0]).text().trim();
-        if (area.toLowerCase().includes("brue") || area.toLowerCase().includes("barvas")) {
-          const dates = [];
-          for (let i = 1; i < cells.length; i++) {
-            const month = months[i - 1];
-            const text = $(cells[i]).text().trim();
-            if (text && month) {
-              text
-                .split(",")
-                .map((d) => d.trim())
-                .filter(Boolean)
-                .forEach((d) => dates.push(`${month} ${d}`));
-            }
-          }
-          results.push({ area, dates });
+        const area = $(cells[0]).text().trim().toLowerCase();
+        if (area.includes("brue") || area.includes("barvas")) {
+          const values = $(cells)
+            .slice(1)
+            .map((_, td) => $(td).text().trim())
+            .get();
+          combined = combined.map((c, i) =>
+            [c, values[i]].filter(Boolean).join(", ")
+          );
         }
       }
+    });
+
+    const dates = [];
+    months.forEach((month, i) => {
+      const cell = combined[i];
+      if (!cell) return;
+      cell
+        .split(",")
+        .map((d) => d.trim())
+        .filter(Boolean)
+        .forEach((d) => dates.push(`${month} ${d}`));
     });
 
     const output = {
       lastUpdated: new Date().toISOString(),
       source: URL,
-      results,
+      results: [
+        {
+          area: "Brue & Barvas",
+          dates,
+        },
+      ],
     };
 
-    const filePath = path.join(process.cwd(), "thursday.json");
-    fs.writeFileSync(filePath, JSON.stringify(output, null, 2), "utf8");
+    fs.writeFileSync(
+      path.join(process.cwd(), "thursday.json"),
+      JSON.stringify(output, null, 2),
+      "utf8"
+    );
 
-    res.status(200).send(`✅ Thursday bin data updated (${results.length} rows)`);
+    res.status(200).send(`✅ Thursday Blue Bin data saved for Brue & Barvas`);
   } catch (err) {
-    console.error("Error in thursday-parse:", err);
+    console.error("❌ Error in Thursday scrape:", err);
     res.status(500).send(`Error: ${err.message}`);
   }
 }
