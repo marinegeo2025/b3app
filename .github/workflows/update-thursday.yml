@@ -1,0 +1,27 @@
+name: Update Thursday Bin Schedule
+
+on:
+  schedule:
+    - cron: "1 3 * * *" # 3:01 AM every day
+  workflow_dispatch:
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Install dependencies
+        run: npm install axios cheerio
+
+      - name: Run Thursday scrape
+        run: node --experimental-modules ./pages/api/thursday-parse.js
+
+      - name: Commit and push changes
+        run: |
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+          git add thursday.json
+          git commit -m "Update Thursday bin data [skip ci]" || echo "No changes"
+          git push
