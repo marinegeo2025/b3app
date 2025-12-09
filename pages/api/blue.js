@@ -8,7 +8,6 @@ export default async function handler(req, res) {
 
   try {
     const filePath = path.join(process.cwd(), "thursday.json");
-
     if (!fs.existsSync(filePath)) {
       return res.status(500).send(`
         <p>⚠️ ${t.errorFetching || "Bin data not available yet."}<br/>
@@ -17,33 +16,33 @@ export default async function handler(req, res) {
     }
 
     const json = JSON.parse(fs.readFileSync(filePath, "utf8"));
-    const barvasBlock = json.results.find((r) =>
-      r.area.toLowerCase().includes("barvas")
-    );
+    const block = json.results[0]; // Only one: Brue & Barvas
 
-    if (!barvasBlock) {
-      return res.status(500).send(`<p>${t.noData || "No data for Barvas."}</p>`);
+    if (!block) {
+      return res.status(500).send(`<p>${t.noData || "No data found."}</p>`);
     }
 
-    // 🗓️ Group by month
+    // 🗓️ Group dates by month (with year rollover)
     const monthGroups = {};
-    barvasBlock.dates.forEach((fullDate) => {
+    const currentDate = new Date(json.lastUpdated);
+    const currentYear = currentDate.getFullYear();
+    const currentMonth = currentDate.getMonth();
+
+    block.dates.forEach((fullDate) => {
       const match = fullDate.match(/^([A-Za-z]+)\s+(\d+\w*)(.*)$/);
       if (match) {
         const [, month, day, note] = match;
-        const currentYear = new Date(json.lastUpdated).getFullYear();
-        const currentMonth = new Date(json.lastUpdated).getMonth();
         let year = currentYear;
         if (currentMonth === 11 && /^(January|February|March)$/i.test(month)) {
           year = currentYear + 1;
         }
-        const displayDate = `${day}${note ? " " + note.trim() : ""}`;
         const monthLabel =
           currentMonth === 11 && /^(January|February|March)$/i.test(month)
             ? `${month} ${year}`
             : month;
+
         if (!monthGroups[monthLabel]) monthGroups[monthLabel] = [];
-        monthGroups[monthLabel].push(displayDate);
+        monthGroups[monthLabel].push(`${day}${note ? " " + note.trim() : ""}`);
       }
     });
 
@@ -51,7 +50,7 @@ export default async function handler(req, res) {
       timeZone: "Europe/London",
     });
 
-    // 🎨 Render
+    // 🎨 Render HTML
     res.setHeader("Content-Type", "text/html");
     res.send(`
       <!DOCTYPE html>
@@ -66,14 +65,17 @@ export default async function handler(req, res) {
       <body class="blue-page">
         <div class="container">
           <h1><i class="fas fa-recycle"></i> ${t.blueTitle}</h1>
-          <h2>${barvasBlock.area}</h2>
+          <h2>${block.area}</h2>
           ${Object.entries(monthGroups)
             .map(
               ([month, days]) => `
                 <h3>${month}</h3>
                 <ul>
                   ${days
-                    .map((d) => `<li><i class="fas fa-calendar-day"></i> ${d}</li>`)
+                    .map(
+                      (d) =>
+                        `<li><i class="fas fa-calendar-day"></i> ${d}</li>`
+                    )
                     .join("")}
                 </ul>`
             )
