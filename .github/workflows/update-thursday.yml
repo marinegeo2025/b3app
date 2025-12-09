@@ -74,10 +74,11 @@ jobs:
           })();
           EOF
 
-      - name: Commit updated JSON
+      - name: Commit and push updates
         run: |
           git config user.name github-actions
           git config user.email github-actions@github.com
+          git pull --rebase origin main || true
           git add thursday.json
           git commit -m "Auto-update Thursday bin JSON ($(date))" || echo "No changes"
           git push
