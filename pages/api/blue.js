@@ -11,24 +11,22 @@ export default async function handler(req, res) {
   const t = translations[lang];
 
   try {
-    // --- Fetch page ---
+    // 🧭 Fetch page
     const response = await axios.get(URL, {
       headers: { "User-Agent": "Mozilla/5.0" },
       timeout: 10000,
     });
     const $ = cheerio.load(response.data);
 
-    // --- Fail-safe: require Brue + Barvas rows ---
+    // 🧩 Fail-safe checks for both Brue & Barvas rows
     try {
       validateBinTable($, { expectedMonths: [], requiredKeyword: "Brue" });
       validateBinTable($, { expectedMonths: [], requiredKeyword: "Barvas" });
     } catch (err) {
-      return res
-        .status(500)
-        .send(`<p>⚠️ Structure changed: ${err.message}</p>`);
+      return res.status(500).send(`<p>⚠️ Structure changed: ${err.message}</p>`);
     }
 
-    // --- Extract headers ---
+    // 🧱 Extract month headers
     const headers = [];
     $("thead th").each((_, th) => headers.push($(th).text().trim()));
     if (headers.length === 0) {
@@ -39,7 +37,7 @@ export default async function handler(req, res) {
     }
     const months = headers.slice(1);
 
-    // --- Find combined Brue+Barvas rows ---
+    // 🧹 Find combined Brue+Barvas rows
     let cells = [];
     $("tr").each((_, row) => {
       const tds = $(row).find("td");
@@ -55,7 +53,7 @@ export default async function handler(req, res) {
         if (cells.length === 0) {
           cells = rowCells;
         } else {
-          // merge into existing cells
+          // merge duplicate rows
           cells = cells.map((c, i) =>
             [c, rowCells[i]].filter(Boolean).join(", ")
           );
@@ -63,28 +61,42 @@ export default async function handler(req, res) {
       }
     });
 
-    // --- Build content ---
+    // 🗓️ Build content
     let content = "";
     if (cells.length) {
+      const now = new Date();
+      const currentMonth = now.getMonth(); // 0–11
+      const currentYear = now.getFullYear();
+
       const sections = months.map((month, i) => {
+        let label = month;
+        if (currentMonth === 11 && /^(January|February|March)$/i.test(month)) {
+          label = `${month} ${currentYear + 1}`; // December scrape -> next year label
+        }
+
         const dates = cells[i]
           .split(",")
           .map((d) => d.trim())
           .filter(Boolean);
+
         const lis =
           dates.length > 0
             ? dates
-                .map((d) => `<li><i class="fas fa-calendar-day"></i> ${d}</li>`)
+                .map(
+                  (d) => `<li><i class="fas fa-calendar-day"></i> ${d}</li>`
+                )
                 .join("")
             : "<li>-</li>";
-        return `<h2>${month}</h2><ul>${lis}</ul>`;
+
+        return `<h2>${label}</h2><ul>${lis}</ul>`;
       });
+
       content = sections.join("");
     } else {
       content = `<p>${t.noData}</p>`;
     }
 
-    // --- Return styled HTML ---
+    // 🎨 Send pretty HTML
     res.setHeader("Content-Type", "text/html");
     res.send(`<!DOCTYPE html>
 <html lang="${lang}">
