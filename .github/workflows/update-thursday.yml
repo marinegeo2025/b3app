@@ -1,8 +1,8 @@
-name: Update Thursday Blue Bin Data (Brue & Barvas)
+name: Update Thursday Bin Schedule
 
 on:
   schedule:
-    - cron: "1 3 * * *"  # 3:01 AM daily
+    - cron: "0 3 * * *"   # runs daily at 3 AM UTC
   workflow_dispatch:
 
 jobs:
@@ -10,20 +10,74 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Install dependencies
-        run: npm install axios cheerio
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
 
-      - name: Run Thursday scraper
-        run: node --experimental-modules ./pages/api/thursday-parse.js
+      - name: Install Puppeteer
+        run: npm install puppeteer@21
 
-      - name: Commit and push updates
+      - name: Scrape CNES Thursday Collections (JSON)
+        run: |
+          node - <<'EOF'
+          import puppeteer from 'puppeteer';
+          import fs from 'fs';
+
+          const url = 'https://www.cne-siar.gov.uk/bins-and-recycling/waste-recycling-collections-lewis-and-harris/organic-food-and-garden-waste-and-mixed-recycling-blue-bin/thursday-collections';
+          const timestamp = new Date().toISOString();
+
+          (async () => {
+            try {
+              const browser = await puppeteer.launch({
+                headless: true,
+                args: ['--no-sandbox', '--disable-setuid-sandbox']
+              });
+              const page = await browser.newPage();
+              await page.goto(url, { waitUntil: 'networkidle2', timeout: 120000 });
+
+              // click all accordion panes
+              await page.evaluate(() => {
+                document.querySelectorAll('.accordion-pane__title button').forEach(b => b.click());
+              });
+              await page.waitForTimeout(3000);
+
+              // extract only needed info
+              const data = await page.evaluate(() => {
+                const items = [];
+                document.querySelectorAll('.accordion-pane').forEach(section => {
+                  const area = section.querySelector('button')?.textContent?.trim() || '';
+                  const dates = Array.from(section.querySelectorAll('ol li')).map(li => li.textContent.trim());
+                  if (area && dates.length) items.push({ area, dates });
+                });
+                return items;
+              });
+
+              const result = {
+                lastUpdated: timestamp,
+                count: data.length,
+                results: data
+              };
+
+              fs.writeFileSync('thursday.json', JSON.stringify(result, null, 2), 'utf8');
+              await browser.close();
+              console.log('✅ Thursday data saved to thursday.json');
+            } catch (err) {
+              console.error('❌ Scrape failed:', err);
+              process.exit(1);
+            }
+          })();
+          EOF
+
+      - name: Commit updated JSON
         run: |
           git config user.name github-actions
           git config user.email github-actions@github.com
           git add thursday.json
-          git commit -m "Auto-update Thursday Blue Bin (Brue & Barvas)" || echo "No changes"
+          git commit -m "Auto-update Thursday bin JSON ($(date))" || echo "No changes"
           git push
