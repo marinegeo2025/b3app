@@ -1,79 +1,79 @@
 import fs from "fs";
 import path from "path";
-import axios from "axios";
-import * as cheerio from "cheerio";
-
-const URL =
-  "https://www.cne-siar.gov.uk/bins-and-recycling/waste-recycling-collections-lewis-and-harris/organic-food-and-garden-waste-and-mixed-recycling-blue-bin/thursday-collections";
 
 export default async function handler(req, res) {
   try {
-    const response = await axios.get(URL, {
-      headers: { "User-Agent": "Mozilla/5.0" },
-      timeout: 15000,
-    });
-    const $ = cheerio.load(response.data);
+    // ✅ Load the lightweight JSON file
+    const filePath = path.join(process.cwd(), "thursday.json");
+    const json = fs.readFileSync(filePath, "utf8");
+    const data = JSON.parse(json);
 
-    // --- Extract month headers ---
-    const headers = [];
-    $("thead th").each((_, th) => headers.push($(th).text().trim()));
-    if (headers.length === 0) {
-      $("tr")
-        .first()
-        .find("th,td")
-        .each((_, cell) => headers.push($(cell).text().trim()));
+    // ✅ Send JSON response (for debugging or integration)
+    if (req.query.format === "json") {
+      return res.status(200).json(data);
     }
-    const months = headers.slice(1);
 
-    // --- Find Brue + Barvas rows and merge ---
-    let combined = new Array(months.length).fill("");
-    $("tbody tr, tr").each((_, row) => {
-      const cells = $(row).find("td");
-      if (cells.length >= 2) {
-        const area = $(cells[0]).text().trim().toLowerCase();
-        if (area.includes("brue") || area.includes("barvas")) {
-          const values = $(cells)
-            .slice(1)
-            .map((_, td) => $(td).text().trim())
-            .get();
-          combined = combined.map((c, i) =>
-            [c, values[i]].filter(Boolean).join(", ")
-          );
-        }
-      }
+    // ✅ Otherwise render as styled HTML (same visual as before)
+    const results = data.results || [];
+    const lastUpdated = new Date(data.lastupdated).toLocaleString("en-GB", {
+      timeZone: "Europe/London",
     });
 
-    const dates = [];
-    months.forEach((month, i) => {
-      const cell = combined[i];
-      if (!cell) return;
-      cell
-        .split(",")
-        .map((d) => d.trim())
-        .filter(Boolean)
-        .forEach((d) => dates.push(`${month} ${d}`));
-    });
-
-    const output = {
-      lastUpdated: new Date().toISOString(),
-      source: URL,
-      results: [
-        {
-          area: "Brue & Barvas",
-          dates,
-        },
-      ],
-    };
-
-    fs.writeFileSync(
-      path.join(process.cwd(), "thursday.json"),
-      JSON.stringify(output, null, 2),
-      "utf8"
-    );
-
-    res.status(200).send(`✅ Thursday Blue Bin data saved for Brue & Barvas`);
+    res.setHeader("Content-Type", "text/html");
+    res.status(200).send(`
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+        <meta charset="UTF-8">
+        <title>BLUE Bin Collection Dates for Ness</title>
+        <link rel="stylesheet" href="/style.css">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      </head>
+      <body class="blue-page">
+        <div class="container">
+          <h1><i class="fas fa-recycle"></i> BLUE Bin Collection Dates for Ness</h1>
+          ${
+            results.length
+              ? results
+                  .map(
+                    ({ area, dates }) => `
+                    <h2>${area}</h2>
+                    ${groupByMonth(dates)
+                      .map(
+                        ([month, monthDates]) => `
+                        <h3>${month}</h3>
+                        <ul>
+                          ${monthDates
+                            .map(
+                              (d) =>
+                                `<li><i class="fas fa-calendar-day"></i> ${d}</li>`
+                            )
+                            .join("")}
+                        </ul>`
+                      )
+                      .join("")}`
+                  )
+                  .join("")
+              : "<p>No data available.</p>"
+          }
+          <p><em>LAST UPDATED: ${lastUpdated}</em></p>
+        </div>
+      </body>
+      </html>
+    `);
   } catch (err) {
-    console.error("❌ Error in Thursday scrape:", err);
-    res.status(500).send(`Error: ${err.message}`);
+    res.status(500).send(`<p>Error loading data: ${err.message}</p>`);
   }
+}
+
+// Helper function to group date strings by month name
+function groupByMonth(dates) {
+  const groups = {};
+  dates.forEach((d) => {
+    const [month] = d.split(" ");
+    groups[month] = groups[month] || [];
+    groups[month].push(d);
+  });
+  return Object.entries(groups);
 }
