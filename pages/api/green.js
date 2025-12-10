@@ -1,105 +1,58 @@
-import axios from "axios";
-import * as cheerio from "cheerio";
-import translations from "../../lib/translations";
-import { validateBinTable } from "../../lib/failsafe";
-
-const URL =
-  "https://www.cne-siar.gov.uk/bins-and-recycling/waste-recycling-collections-lewis-and-harris/glass-green-bin-collections/friday-collections";
-
-const TARGET_AREAS = ["Brue", "Barvas"];
+// pages/api/green.js
+import fs from "fs";
+import path from "path";
+import translations from "../../lib/translations.js";
 
 export default async function handler(req, res) {
-  const lang = req.query.lang === "en" ? "en" : "gd";
+  const lang = req.query.lang === "gd" ? "gd" : "en";
   const t = translations[lang];
 
   try {
-    // --- Fetch page ---
-    const response = await axios.get(URL, {
-      headers: { "User-Agent": "Mozilla/5.0" },
-      timeout: 10000,
-    });
-    const $ = cheerio.load(response.data);
-
-    // --- Fail-safe: require Brue + Barvas rows ---
-    try {
-      validateBinTable($, { expectedMonths: [], requiredKeyword: "Brue" });
-      validateBinTable($, { expectedMonths: [], requiredKeyword: "Barvas" });
-    } catch (err) {
-      return res
-        .status(500)
-        .send(`<p>⚠️ Structure changed: ${err.message}</p>`);
+    const filePath = path.join(process.cwd(), "brue", "green.json");
+    if (!fs.existsSync(filePath)) {
+      return res.status(500).send(`<p>⚠️ ${t.noData}</p>`);
     }
 
-    // --- Extract headers ---
-    const headers = [];
-    $("thead th").each((_, th) => headers.push($(th).text().trim()));
-    if (headers.length === 0) {
-      $("tr")
-        .first()
-        .find("th,td")
-        .each((_, cell) => headers.push($(cell).text().trim()));
+    const json = JSON.parse(fs.readFileSync(filePath, "utf8"));
+    const brueBlock = json.results.find((r) => /brue/i.test(r.area));
+
+    if (!brueBlock) {
+      return res.status(500).send(`<p>${t.noData}</p>`);
     }
-    const months = headers.slice(1);
 
-    // --- Build sections for each target area ---
-    const sectionsForAll = TARGET_AREAS.map((area) => {
-      let cells = [];
-      $("tr").each((_, row) => {
-        const tds = $(row).find("td");
-        if (tds.length && $(tds[0]).text().includes(area)) {
-          cells = tds
-            .slice(1)
-            .map((_, td) => $(td).text().trim())
-            .get();
-        }
-      });
-
-      if (cells.length) {
-        const monthSections = months.map((month, i) => {
-          const dates = cells[i]
-            .split(",")
-            .map((d) => d.trim())
-            .filter(Boolean);
-          const lis =
-            dates.length > 0
-              ? dates
-                  .map(
-                    (d) => `<li><i class="fas fa-calendar-day"></i> ${d}</li>`
-                  )
-                  .join("")
-              : "<li>-</li>";
-          return `<h3>${month}</h3><ul>${lis}</ul>`;
-        });
-        return `<h2>${area}</h2>${monthSections.join("")}`;
-      } else {
-        return `<h2>${area}</h2><p>${t.noData}</p>`;
-      }
+    const lastUpdated = new Date(json.lastUpdated).toLocaleString("en-GB", {
+      timeZone: "Europe/London",
     });
 
-    const content = sectionsForAll.join("<hr/>");
-
-    // --- Return styled HTML ---
+    // Render HTML
     res.setHeader("Content-Type", "text/html");
-    res.send(`<!DOCTYPE html>
+    res.status(200).send(`<!DOCTYPE html>
 <html lang="${lang}">
 <head>
-  <meta charset="utf-8">
+  <meta charset="UTF-8">
   <title>${t.greenTitle}</title>
   <link rel="stylesheet" href="/style.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 </head>
 <body class="green-page">
   <div class="container">
-    <h1><i class="fas fa-wine-bottle"></i> ${t.greenTitle}</h1>
-    ${content}
-    <div style="text-align:center;">
-      <a class="back" href="/?lang=${lang}">${t.back}</a>
-    </div>
+    <h1><i class="fas fa-wine-bottle"></i> ${t.greenTitle} – Brue</h1>
+    <h2>${brueBlock.area}</h2>
+    <p><em>${brueBlock.locations.join(", ")}</em></p>
+    <ul>
+      ${brueBlock.dates
+        .map(
+          (d) => `<li><i class="fas fa-calendar-day"></i> ${d}</li>`
+        )
+        .join("")}
+    </ul>
+    <p class="last-updated"><em>${t.lastUpdated || "Last updated"}: ${lastUpdated}</em></p>
+    <a class="back" href="/?lang=${lang}">← ${lang === "gd" ? "Air ais" : "Back"}</a>
   </div>
 </body>
 </html>`);
   } catch (err) {
+    console.error("Green bin render error:", err);
     res.status(500).send(`<p>${t.errorFetching} ${err.message}</p>`);
   }
 }
