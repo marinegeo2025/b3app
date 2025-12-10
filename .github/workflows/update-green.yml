@@ -2,31 +2,77 @@ name: Auto-update Friday (Green Bin) JSON
 
 on:
   schedule:
-    - cron: "1 0 * * *" # runs every day at 00:01 UTC
-  workflow_dispatch:    # allow manual trigger from Actions tab
+    - cron: "1 0 * * *"  # Run daily at 00:01 UTC
+  workflow_dispatch:
 
 jobs:
   update-green:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
+      - name: Checkout repo
         uses: actions/checkout@v4
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: 20
 
       - name: Install dependencies
-        run: npm ci || npm install
+        run: npm install axios cheerio
 
-      - name: Run Brue Green Bin scraper
-        run: node actions/brue_green_scrape.js
+      - name: Scrape Brue Green Bin data
+        run: |
+          node - <<'EOF'
+          import axios from "axios";
+          import * as cheerio from "cheerio";
+          import fs from "fs";
+
+          const URL = "https://www.cne-siar.gov.uk/bins-and-recycling/waste-recycling-collections-lewis-and-harris/glass-green-bin-collections/friday-collections";
+          const OUTPUT_FILE = "green.json";
+
+          async function scrape() {
+            const { data } = await axios.get(URL, {
+              headers: { "User-Agent": "Mozilla/5.0" },
+            });
+            const $ = cheerio.load(data);
+
+            const section = $("details").filter((_, el) =>
+              $(el).find("summary, h3, strong").text().includes("Brue to Carloway")
+            ).first();
+
+            if (!section.length) throw new Error("Could not find 'Brue to Carloway' section");
+
+            const text = section.text();
+
+            const dates = [...text.matchAll(/([A-Z][a-z]+)\s(\d{1,2}(st|nd|rd|th)?)/g)].map(
+              (m) => `${m[1]} ${m[2]}`
+            );
+
+            const result = {
+              lastUpdated: new Date().toISOString(),
+              results: [
+                {
+                  area: "Brue to Carloway",
+                  dates: dates.length ? dates : ["No data found"],
+                  coverage: ["Brue", "Arnol", "Bragar", "Shawbost", "Carloway"],
+                },
+              ],
+            };
+
+            fs.writeFileSync(OUTPUT_FILE, JSON.stringify(result, null, 2));
+            console.log(`✅ Saved ${dates.length} green bin dates to ${OUTPUT_FILE}`);
+          }
+
+          scrape().catch((err) => {
+            console.error("❌ Error:", err);
+            process.exit(1);
+          });
+          EOF
 
       - name: Commit and push if changed
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.email "actions@github.com"
+          git config --local user.name "GitHub Actions"
           git add green.json
-          git diff --quiet && echo "✅ No changes to commit" || (git commit -m "Auto-update Friday bin JSON ($(date -u))" && git pull --rebase && git push)
+          git diff --quiet && echo "No changes" || (git commit -m "Auto-update Friday bin JSON ($(date -u))" && git push)
