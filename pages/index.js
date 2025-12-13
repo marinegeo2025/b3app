@@ -1,6 +1,6 @@
-import Head from "next/head"; //Brue Forever :)
+import Head from "next/head"; // Brue Forever :)
 import { useState, useEffect } from "react";
-import translations from "../lib/translations";   // in index.js
+import translations from "../lib/translations";
 
 export default function Home() {
   const [lang, setLang] = useState("gd"); // Gaelic default
@@ -18,7 +18,7 @@ export default function Home() {
     localStorage.setItem("lang", newLang);
   };
 
-  const t = translations[lang]; // shorthand
+  const t = translations[lang];
 
   return (
     <>
@@ -32,36 +32,37 @@ export default function Home() {
         />
         <link rel="stylesheet" href="/style.css" />
         <link rel="manifest" href="/manifest.json" />
-<link rel="apple-touch-icon" href="/icon.png" />
-<meta name="theme-color" content="#067f0b" />
-   
+        <link rel="apple-touch-icon" href="/icon.png" />
+        <meta name="theme-color" content="#067f0b" />
       </Head>
 
       <div className="container">
-        {/* Header row with centered title + language toggle button */}
+        {/* Header */}
         <div className="header-row">
           <h1>
-  <i className="fas fa-trash"></i>{" "}
-  {lang === "en" ? (
-    <>
-      {t.titleLine1} <br /> {t.titleLine2}
-    </>
-  ) : (
-    t.title
-  )}
-</h1>
+            <i className="fas fa-trash"></i>{" "}
+            {lang === "en" ? (
+              <>
+                {t.titleLine1} <br /> {t.titleLine2}
+              </>
+            ) : (
+              t.title
+            )}
+          </h1>
+
           <button onClick={toggleLang} className="lang-toggle">
             {lang === "gd" ? "Gàidhlig" : "English"}
           </button>
         </div>
 
         <p
-  className="villages"
-  dangerouslySetInnerHTML={{ __html: t.villages }}
-/>
-        
+          className="villages"
+          dangerouslySetInnerHTML={{ __html: t.villages }}
+        />
+
         <p>{t.selectBin}</p>
 
+        {/* Bin buttons */}
         <ul className="bin-list">
           <li>
             <a
@@ -89,38 +90,57 @@ export default function Home() {
           </li>
         </ul>
 
-       <div style={{ marginTop: "20px" }}>
-  <h3>{t.calendarHeader}</h3>
+        {/* Calendar downloads */}
+        <div style={{ marginTop: "20px" }}>
+          <h3>{t.calendarHeader}</h3>
 
-  {/* Brue schedule */}
-  <a
-    href={`/api/calendar/brue?lang=${lang}`}
-    className="bin-link north-bin-link"
-  >
-    <i className="fas fa-download icon"></i> {t.brueSchedule}
-    <br />
-    <span className="subtext">{t.brueVillages}</span>
-  </a>
+          <a
+            href={`/api/calendar/brue?lang=${lang}`}
+            className="bin-link north-bin-link"
+          >
+            <i className="fas fa-download icon"></i> {t.brueSchedule}
+            <br />
+            <span className="subtext">{t.brueVillages}</span>
+          </a>
 
-  {/* Barvas schedule */}
-  <a
-    href={`/api/calendar/barvas?lang=${lang}`}
-    className="bin-link south-bin-link"
-  >
-    <i className="fas fa-download icon"></i> {t.barvasSchedule}
-    <br />
-    <span className="subtext">{t.barvasVillages}</span>
-  </a>
-</div>
+          <a
+            href={`/api/calendar/barvas?lang=${lang}`}
+            className="bin-link south-bin-link"
+          >
+            <i className="fas fa-download icon"></i> {t.barvasSchedule}
+            <br />
+            <span className="subtext">{t.barvasVillages}</span>
+          </a>
+        </div>
 
-<div
-  className="credit"
-  dangerouslySetInnerHTML={{ __html: `${t.credit}<br /><br />${t.licence}` }}
-/>
+        {/* 🎄 Festive Message (December only) */}
+        {new Date().getMonth() === 11 && (
+          <>
+            <div className="snow"></div>
 
-<p className="cute-text">{t.cute}</p>
-</div>
-</>
-);
+            <div className="festive-message">
+              <p>{t.festiveMessage}</p>
+              <div className="sparkle-wrap">
+                <span>✨</span>
+                <span>🎅</span>
+                <span>🎄</span>
+                <span>⭐</span>
+                <span>🎁</span>
+              </div>
+            </div>
+          </>
+        )}
+
+        {/* Footer */}
+        <div
+          className="credit"
+          dangerouslySetInnerHTML={{
+            __html: `${t.credit}<br /><br />${t.licence}`,
+          }}
+        />
+
+        <p className="cute-text">{t.cute}</p>
+      </div>
+    </>
+  );
 }
-
