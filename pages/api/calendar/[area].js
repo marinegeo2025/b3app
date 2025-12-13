@@ -44,38 +44,29 @@ function buildEvents(binKey, t, label, monthMap) {
   return events;
 }
 
-export default function handler(req, res) {
+export default async function handler(req, res) {
   const { area } = req.query; // brue | barvas
   const lang = req.query.lang === "gd" ? "gd" : "en";
   const t = translations[lang];
 
   try {
-    const load = (file) => {
-      const filePath = path.join(
-        process.cwd(),
-        "public",
-        "data",
-        file
-      );
+    const loadJSON = (file) => {
+      const filePath = path.join(process.cwd(), file);
       if (!fs.existsSync(filePath)) {
-        throw new Error(`Missing data file: ${file}`);
+        throw new Error(`Missing JSON file: ${file}`);
       }
       return JSON.parse(fs.readFileSync(filePath, "utf8"));
     };
 
-    const black = load("black.json");
-    const blue = load("wednesday.json");
-    const green = load("green.json");
+    const black = loadJSON("black.json");
+    const blue = loadJSON("wednesday.json");
+    const green = loadJSON("green.json");
 
-    // Black & Blue are shared Brue+Barvas
-    const blackBlock = black.results.find(r =>
-      /barvas|brue/i.test(r.area)
-    );
-    const blueBlock = blue.results.find(r =>
-      /barvas|brue/i.test(r.area)
-    );
+    // Black & Blue shared
+    const blackBlock = black.results.find(r => /brue|barvas/i.test(r.area));
+    const blueBlock = blue.results.find(r => /brue|barvas/i.test(r.area));
 
-    // Green is split
+    // Green split
     const greenBlock =
       area === "brue"
         ? green.results.find(r => /brue/i.test(r.area))
