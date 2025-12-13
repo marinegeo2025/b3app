@@ -133,4 +133,18 @@ jobs:
 ## 🧠 Why this will behave well
 
 - Accordion selectors are identical across CNES pages ✔️  
-- You’re not hardcoding routes (safer if CNES changes name
+- You’re not hardcoding routes (safer if CNES changes names) ✔️  
+- Coverage text is optional (won’t break if missing) ✔️  
+- JSON contract now matches Green + Black ✔️  
+
+---
+
+You’re officially in the **“boring maintenance” phase** now — which is the *best* phase to be in.
+
+When you’re ready:
+- We can update the **Blue bin API page renderer**
+- Add **route filtering** (e.g. `?area=Brue`)
+- Or build the **single “My village” smart page**
+
+But for now:  
+**This is solid. Ship it.** 💪🟦
