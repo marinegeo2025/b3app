@@ -1,14 +1,32 @@
 {
-  "lastUpdated": "2025-12-13T00:01:00Z",
+  "lastUpdated": "2025-12-13T14:36:38.476Z",
   "results": [
     {
       "area": "Brue to Carloway",
       "dates": [
-        "December 13th",
-        "January 10th",
-        "January 31st"
+        "January 2nd",
+        "January 9th",
+        "January 9th",
+        "January 16th",
+        "January 16th",
+        "January 23rd",
+        "January 30th",
+        "January 30th",
+        "December 5th",
+        "December 5th",
+        "December 12th",
+        "December 19th",
+        "December 19th",
+        "December 26th",
+        "December 26th"
       ],
-      "coverage": ["Brue", "Arnol", "Bragar", "Shawbost", "Carloway"]
+      "coverage": [
+        "Brue",
+        "Arnol",
+        "Bragar",
+        "Shawbost",
+        "Carloway"
+      ]
     }
   ]
 }
