@@ -69,7 +69,7 @@ jobs:
               if (!data.length) throw new Error("No Thursday routes found");
 
               fs.writeFileSync(
-                "thursday.json",
+                "blue.json",
                 JSON.stringify({ lastUpdated: timestamp, count: data.length, results: data }, null, 2)
               );
 
@@ -87,6 +87,6 @@ jobs:
           git config user.name github-actions
           git config user.email github-actions@github.com
           git pull --rebase origin main || true
-          git add thursday.json
+          git add blue.json
           git commit -m "Auto-update Thursday (Blue bin) JSON ($(date -u))" || echo "No changes"
           git push
