@@ -3,35 +3,33 @@ import path from "path";
 import { createEvents } from "ics";
 import translations from "../../../lib/translations";
 
-// "January 21st" → { month: "January", day: 21 }
-function parseDate(d) {
-  const parts = d.trim().split(" ");
-  if (parts.length < 2) return null;
+function cleanDay(str) {
+  const m = str.match(/^(\d{1,2})/);
+  return m ? parseInt(m[1], 10) : null;
+}
 
-  const month = parts[0];
-  const dayMatch = parts[1].match(/^(\d+)/);
-  if (!dayMatch) return null;
-
-  return {
-    month,
-    day: parseInt(dayMatch[1], 10),
-  };
+function monthIndex(month) {
+  return new Date(`${month} 1, 2000`).getMonth();
 }
 
 function buildEvents(title, dates) {
-  const year = new Date().getFullYear();
+  const now = new Date();
+  const year = now.getFullYear();
+  const currentMonth = now.getMonth();
   const events = [];
 
   dates.forEach((d) => {
-    const parsed = parseDate(d);
-    if (!parsed) return;
+    const [month, dayRaw] = d.split(" ");
+    const day = cleanDay(dayRaw);
+    const mIndex = monthIndex(month);
+    if (day === null || isNaN(mIndex)) return;
 
-    const monthIndex = new Date(`${parsed.month} 1, ${year}`).getMonth();
-    if (isNaN(monthIndex)) return;
+    const eventYear =
+      currentMonth === 11 && mIndex <= 1 ? year + 1 : year;
 
     events.push({
       title,
-      start: [year, monthIndex + 1, parsed.day],
+      start: [eventYear, mIndex + 1, day],
     });
   });
 
@@ -39,7 +37,7 @@ function buildEvents(title, dates) {
 }
 
 export default function handler(req, res) {
-  const area = req.query.area === "barvas" ? "barvas" : "brue";
+  const { area } = req.query; // brue | barvas
   const lang = req.query.lang === "gd" ? "gd" : "en";
   const t = translations[lang];
 
@@ -53,42 +51,28 @@ export default function handler(req, res) {
 
     let events = [];
 
-    // --- BLACK (shared)
-    black.results.forEach((r) => {
-      events.push(
-        ...buildEvents(`${t.blackButton} (Brue & Barvas)`, r.dates || [])
-      );
-    });
-
-    // --- BLUE (shared – first/top section only)
-    if (blue.results?.length) {
-      events.push(
-        ...buildEvents(
-          `${t.blueButton} (Brue & Barvas)`,
-          blue.results[0].dates || []
-        )
-      );
-    }
-
-    // --- GREEN (split correctly)
-    const greenBlock = green.results.find((r) =>
-      area === "brue"
-        ? /brue/i.test(r.area)
-        : /barvas/i.test(r.area)
+    // Black + Blue always shared
+    events.push(
+      ...buildEvents(`${t.blackButton} (Brue & Barvas)`, black.results[0].dates),
+      ...buildEvents(`${t.blueButton} (Brue & Barvas)`, blue.results[0].dates)
     );
+
+    // Green splits by area
+    const greenBlock =
+      area === "brue"
+        ? green.results.find((r) => /brue/i.test(r.area))
+        : green.results.find((r) => /barvas/i.test(r.area));
 
     if (greenBlock) {
       events.push(
         ...buildEvents(
           `${t.greenButton} (${area === "brue" ? "Brue" : "Barvas"})`,
-          greenBlock.dates || []
+          greenBlock.dates
         )
       );
     }
 
-    if (!events.length) {
-      return res.status(500).send(t.noData);
-    }
+    if (!events.length) return res.status(500).send(t.noData);
 
     const { error, value } = createEvents(events);
     if (error) throw error;
@@ -100,7 +84,7 @@ export default function handler(req, res) {
     );
     res.send(value);
   } catch (err) {
-    console.error("Calendar error:", err);
+    console.error(err);
     res.status(500).send(`${t.errorFetching} ${err.message}`);
   }
 }
