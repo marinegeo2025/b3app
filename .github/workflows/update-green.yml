@@ -29,101 +29,99 @@ jobs:
           import puppeteer from "puppeteer";
           import fs from "fs";
 
-          const URL =
+          const url =
             "https://www.cne-siar.gov.uk/bins-and-recycling/waste-recycling-collections-lewis-and-harris/glass-green-bin-collections/friday-collections";
 
-          const ROUTES = [
-            {
-              key: "brue",
-              title: "Brue to Carloway",
-              coverage: ["Brue", "Arnol", "Bragar", "Shawbost", "Carloway"],
-            },
-            {
-              key: "barvas",
-              title: "Barvas to Galson",
-              coverage: [
-                "Barvas",
-                "Ballantrushal",
-                "Shader",
-                "Airidhantuim",
-                "Borve",
-                "High Borve",
-                "Melbost Borve",
-                "South Galson",
-                "North Galson",
-                "Water Board Houses",
-                "An Allt Dubh",
-              ],
-            },
+          const timestamp = new Date().toISOString();
+
+          const TARGET_ROUTES = [
+            "Brue to Carloway",
+            "Barvas to Galson"
           ];
 
-          const browser = await puppeteer.launch({
-            headless: true,
-            args: ["--no-sandbox"],
-          });
+          (async () => {
+            try {
+              const browser = await puppeteer.launch({
+                headless: true,
+                args: ["--no-sandbox", "--disable-setuid-sandbox"]
+              });
 
-          const page = await browser.newPage();
-          await page.goto(URL, { waitUntil: "networkidle2", timeout: 120000 });
+              const page = await browser.newPage();
+              await page.goto(url, { waitUntil: "networkidle2", timeout: 120000 });
 
-          // Expand all accordion sections
-          await page.evaluate(() => {
-            document
-              .querySelectorAll(".accordion-pane__title button")
-              .forEach(btn => btn.click());
-          });
+              // Expand all accordion panes (same as NessBin)
+              await page.evaluate(() => {
+                document
+                  .querySelectorAll(".accordion-pane__title button")
+                  .forEach(btn => btn.click());
+              });
 
-          await page.waitForTimeout(3000);
+              await page.waitForTimeout(3000);
 
-          const results = await page.evaluate((ROUTES) => {
-            const out = [];
+              const results = await page.evaluate((TARGET_ROUTES) => {
+                const items = [];
 
-            document.querySelectorAll(".accordion-pane").forEach(pane => {
-              const title =
-                pane.querySelector(".accordion-pane__title button")
-                  ?.textContent?.trim();
+                document.querySelectorAll(".accordion-pane").forEach(section => {
+                  const area =
+                    section.querySelector(".accordion-pane__title button")
+                      ?.textContent?.trim() || "";
 
-              const route = ROUTES.find(r => r.title === title);
-              if (!route) return;
+                  if (!TARGET_ROUTES.includes(area)) return;
 
-              const dates = Array.from(pane.querySelectorAll("ol li"))
-                .map(li => li.textContent.trim())
-                .filter(Boolean);
+                  const dates = Array.from(section.querySelectorAll("ol li"))
+                    .map(li => li.textContent.trim())
+                    .filter(Boolean);
 
-              if (dates.length) {
-                out.push({
-                  key: route.key,
-                  area: route.title,
-                  dates: [...new Set(dates)],
-                  coverage: route.coverage,
+                  // coverage text (if present)
+                  const coverageHeading = Array.from(
+                    section.querySelectorAll("h4, strong")
+                  ).find(el => el.textContent.includes("locations"));
+
+                  const coverage = coverageHeading
+                    ? coverageHeading.nextElementSibling?.textContent?.trim() || ""
+                    : "";
+
+                  if (dates.length) {
+                    items.push({
+                      area,
+                      dates: [...new Set(dates)],
+                      coverage
+                    });
+                  }
                 });
+
+                return items;
+              }, TARGET_ROUTES);
+
+              await browser.close();
+
+              if (!results.length) {
+                throw new Error("No green bin routes found (Brue / Barvas)");
               }
-            });
 
-            return out;
-          }, ROUTES);
+              fs.writeFileSync(
+                "green.json",
+                JSON.stringify(
+                  {
+                    lastUpdated: timestamp,
+                    count: results.length,
+                    results
+                  },
+                  null,
+                  2
+                ),
+                "utf8"
+              );
 
-          await browser.close();
-
-          if (!results.length) {
-            throw new Error("No green bin routes found — CNES page may have changed");
-          }
-
-          fs.writeFileSync(
-            "green.json",
-            JSON.stringify(
-              {
-                lastUpdated: new Date().toISOString(),
-                results,
-              },
-              null,
-              2
-            )
-          );
-
-          console.log(
-            "✅ Green bin routes saved:",
-            results.map(r => r.area).join(", ")
-          );
+              console.log(
+                "✅ Green bin routes saved:",
+                results.map(r => r.area).join(", ")
+              );
+            } catch (err) {
+              console.error("❌ Green bin scrape failed:", err);
+              process.exit(1);
+            }
+          })();
           EOF
 
       - name: Commit and push updates
