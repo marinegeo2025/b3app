@@ -1,4 +1,4 @@
-name: Update Thursday Bin Schedule (Blue Bin)
+name: Update Blue Bin Schedule (Thursday)
 
 on:
   schedule:
