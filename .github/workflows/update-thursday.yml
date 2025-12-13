@@ -1,8 +1,8 @@
-name: Update Thursday Bin Schedule
+name: Update Thursday Bin Schedule (Blue Bin)
 
 on:
   schedule:
-    - cron: "15 13 * * *"   # runs daily at 3:15 AM UTC (14:15 BST)
+    - cron: "15 13 * * *"   # 13:15 UTC = 13:15 GMT / 14:15 BST
   workflow_dispatch:
 
 jobs:
@@ -23,52 +23,96 @@ jobs:
       - name: Install Puppeteer
         run: npm install puppeteer@21
 
-      - name: Scrape CNES Thursday Collections (JSON)
+      - name: Scrape CNES Thursday Collections (Blue Bin JSON)
         run: |
           node - <<'EOF'
-          import puppeteer from 'puppeteer';
-          import fs from 'fs';
+          import puppeteer from "puppeteer";
+          import fs from "fs";
 
-          const url = 'https://www.cne-siar.gov.uk/bins-and-recycling/waste-recycling-collections-lewis-and-harris/organic-food-and-garden-waste-and-mixed-recycling-blue-bin/thursday-collections';
+          const URL =
+            "https://www.cne-siar.gov.uk/bins-and-recycling/waste-recycling-collections-lewis-and-harris/organic-food-and-garden-waste-and-mixed-recycling-blue-bin/thursday-collections";
+
           const timestamp = new Date().toISOString();
 
           (async () => {
             try {
               const browser = await puppeteer.launch({
                 headless: true,
-                args: ['--no-sandbox', '--disable-setuid-sandbox']
+                args: ["--no-sandbox", "--disable-setuid-sandbox"],
               });
-              const page = await browser.newPage();
-              await page.goto(url, { waitUntil: 'networkidle2', timeout: 120000 });
 
-              // click all accordion panes
-              await page.evaluate(() => {
-                document.querySelectorAll('.accordion-pane__title button').forEach(b => b.click());
+              const page = await browser.newPage();
+              await page.goto(URL, {
+                waitUntil: "networkidle2",
+                timeout: 120000,
               });
+
+              // Expand all accordion sections
+              await page.evaluate(() => {
+                document
+                  .querySelectorAll(".accordion-pane__title button")
+                  .forEach(btn => btn.click());
+              });
+
               await page.waitForTimeout(3000);
 
-              // extract only needed info
               const data = await page.evaluate(() => {
                 const items = [];
-                document.querySelectorAll('.accordion-pane').forEach(section => {
-                  const area = section.querySelector('button')?.textContent?.trim() || '';
-                  const dates = Array.from(section.querySelectorAll('ol li')).map(li => li.textContent.trim());
-                  if (area && dates.length) items.push({ area, dates });
+
+                document.querySelectorAll(".accordion-pane").forEach(section => {
+                  const area =
+                    section.querySelector(".accordion-pane__title button")
+                      ?.textContent?.trim() || "";
+
+                  const dates = Array.from(
+                    section.querySelectorAll("ol li")
+                  ).map(li => li.textContent.trim());
+
+                  // optional coverage text
+                  const coverageHeader = Array.from(
+                    section.querySelectorAll("h4, strong")
+                  ).find(el =>
+                    el.textContent.toLowerCase().includes("locations")
+                  );
+
+                  const coverage =
+                    coverageHeader?.nextElementSibling?.textContent?.trim() ||
+                    "";
+
+                  if (area && dates.length) {
+                    items.push({
+                      area,
+                      dates,
+                      coverage,
+                    });
+                  }
                 });
+
                 return items;
               });
 
-              const result = {
-                lastUpdated: timestamp,
-                count: data.length,
-                results: data
-              };
+              if (!data.length) {
+                throw new Error("No Thursday routes found — page structure may have changed");
+              }
 
-              fs.writeFileSync('thursday.json', JSON.stringify(result, null, 2), 'utf8');
+              fs.writeFileSync(
+                "thursday.json",
+                JSON.stringify(
+                  {
+                    lastUpdated: timestamp,
+                    count: data.length,
+                    results: data,
+                  },
+                  null,
+                  2
+                ),
+                "utf8"
+              );
+
               await browser.close();
-              console.log('✅ Thursday data saved to thursday.json');
+              console.log("✅ Thursday (Blue bin) data saved to thursday.json");
             } catch (err) {
-              console.error('❌ Scrape failed:', err);
+              console.error("❌ Thursday scrape failed:", err);
               process.exit(1);
             }
           })();
@@ -80,5 +124,13 @@ jobs:
           git config user.email github-actions@github.com
           git pull --rebase origin main || true
           git add thursday.json
-          git commit -m "Auto-update Thursday bin JSON ($(date))" || echo "No changes"
+          git commit -m "Auto-update Thursday (Blue bin) JSON ($(date -u))" || echo "No changes"
           git push
+`` hookup is now **clean, consistent, and future-proof**.
+
+---
+
+## 🧠 Why this will behave well
+
+- Accordion selectors are identical across CNES pages ✔️  
+- You’re not hardcoding routes (safer if CNES changes name
