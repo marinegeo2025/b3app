@@ -10,32 +10,32 @@ function cleanDate(d) {
   return match ? parseInt(match[1], 10) : null;
 }
 
-// Convert ["December 11th", ...] → { December: [11, ...] }
-function convertToMonthData(dates = []) {
-  const data = {};
+// Convert ["December 11th"] → { December: [11] }
+function toMonthMap(dates = []) {
+  const map = {};
   dates.forEach((d) => {
     const [month, dayRaw] = d.split(" ");
     const day = cleanDate(dayRaw);
     if (!isNaN(day)) {
-      data[month] = data[month] || [];
-      data[month].push(day);
+      map[month] = map[month] || [];
+      map[month].push(day);
     }
   });
-  return data;
+  return map;
 }
 
 // Build ICS events
-function buildEvents(binType, t, areaName, data) {
+function buildEvents(binKey, t, label, monthMap) {
   const year = new Date().getFullYear();
   const events = [];
 
-  for (const [month, days] of Object.entries(data)) {
+  for (const [month, days] of Object.entries(monthMap)) {
     const monthIndex = new Date(`${month} 1, ${year}`).getMonth();
     if (isNaN(monthIndex)) continue;
 
     for (const day of days) {
       events.push({
-        title: `${t[`${binType}Button`]} (${areaName})`,
+        title: `${t[`${binKey}Button`]} (${label})`,
         start: [year, monthIndex + 1, day],
       });
     }
@@ -50,48 +50,41 @@ export default function handler(req, res) {
   const t = translations[lang];
 
   try {
-    const loadJSON = (filename) => {
-      const filePath = path.join(process.cwd(), filename);
-      if (!fs.existsSync(filePath)) return null;
-      return JSON.parse(fs.readFileSync(filePath, "utf8"));
-    };
+    const load = (f) =>
+      JSON.parse(fs.readFileSync(path.join(process.cwd(), f), "utf8"));
 
-    const black = loadJSON("black.json");
-    const blue = loadJSON("blue.json");
-    const green = loadJSON("green.json");
+    const black = load("black.json");
+    const blue = load("wednesday.json");
+    const green = load("green.json");
 
-    if (!black || !blue || !green) {
-      throw new Error("Missing local JSON bin data");
-    }
+    // --- Black & Blue (shared route)
+    const blackBlock = black.results.find(r =>
+      /barvas|brue/i.test(r.area)
+    );
+    const blueBlock = blue.results.find(r =>
+      /barvas|brue/i.test(r.area)
+    );
 
-    // --- Black & Blue apply to BOTH areas
-    const blackData = convertToMonthData(black.results?.[0]?.dates || []);
-    const blueData = convertToMonthData(blue.results?.[0]?.dates || []);
-
-    // --- Green depends on area
+    // --- Green (split routes)
     const greenBlock =
       area === "brue"
-        ? green.results.find((r) => /brue/i.test(r.area))
-        : green.results.find((r) => /barvas/i.test(r.area));
+        ? green.results.find(r => /brue/i.test(r.area))
+        : green.results.find(r => /barvas/i.test(r.area));
 
-    const greenData = greenBlock
-      ? convertToMonthData(greenBlock.dates)
-      : {};
+    if (!blackBlock || !blueBlock || !greenBlock) {
+      throw new Error("Required bin route not found in JSON");
+    }
 
-    let events = [
-      ...buildEvents("black", t, "Brue & Barvas", blackData),
-      ...buildEvents("blue", t, "Brue & Barvas", blueData),
+    const events = [
+      ...buildEvents("black", t, "Brue & Barvas", toMonthMap(blackBlock.dates)),
+      ...buildEvents("blue", t, "Brue & Barvas", toMonthMap(blueBlock.dates)),
       ...buildEvents(
         "green",
         t,
-        area === "brue" ? "Brue" : "Barvas",
-        greenData
+        area === "brue" ? "Brue → Carloway" : "Barvas → Galson",
+        toMonthMap(greenBlock.dates)
       ),
     ];
-
-    if (!events.length) {
-      return res.status(500).send(t.noData);
-    }
 
     const { error, value } = createEvents(events);
     if (error) throw error;
@@ -99,7 +92,7 @@ export default function handler(req, res) {
     res.setHeader("Content-Type", "text/calendar; charset=utf-8");
     res.setHeader(
       "Content-Disposition",
-      `attachment; filename="${area}-bin-schedule-${lang}.ics"`
+      `attachment; filename="${area}-bin-calendar-${lang}.ics"`
     );
     res.send(value);
   } catch (err) {
