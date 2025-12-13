@@ -38,7 +38,7 @@ function buildEvents(title, dates) {
 }
 
 export default function handler(req, res) {
-  const { area } = req.query; // brue | barvas
+  const area = req.query.area === "barvas" ? "barvas" : "brue"; // default → brue
   const lang = req.query.lang === "gd" ? "gd" : "en";
   const t = translations[lang];
 
@@ -49,16 +49,25 @@ export default function handler(req, res) {
 
     let events = [];
 
-    events.push(
-      ...buildEvents(
-        `${t.blackButton} (Brue & Barvas)`,
-        black.dates || []
-      )
-    );
+    /* ------------------
+       BLACK BIN (shared)
+    ------------------ */
+    black.results.forEach((block) => {
+      events.push(
+        ...buildEvents(
+          `${t.blackButton} (Brue & Barvas)`,
+          block.dates
+        )
+      );
+    });
 
+    /* ------------------
+       BLUE BIN (shared)
+    ------------------ */
     const blueBlock = blue.results.find((r) =>
       /brue|barvas/i.test(r.area)
     );
+
     if (blueBlock) {
       events.push(
         ...buildEvents(
@@ -68,13 +77,19 @@ export default function handler(req, res) {
       );
     }
 
+    /* ------------------
+       GREEN BIN (split)
+    ------------------ */
     const greenBlock = green.results.find((r) =>
-      /brue/i.test(r.area)
+      area === "brue"
+        ? /brue/i.test(r.area)
+        : /barvas/i.test(r.area)
     );
+
     if (greenBlock) {
       events.push(
         ...buildEvents(
-          `${t.greenButton} (Brue)`,
+          `${t.greenButton} (${area === "brue" ? "Brue" : "Barvas"})`,
           greenBlock.dates
         )
       );
