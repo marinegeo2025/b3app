@@ -45,61 +45,49 @@ function buildEvents(binKey, t, label, monthMap) {
 }
 
 export default function handler(req, res) {
-  const { area } = req.query; // "brue" | "barvas"
+  const { area } = req.query; // brue | barvas
   const lang = req.query.lang === "gd" ? "gd" : "en";
   const t = translations[lang];
 
-  if (!["brue", "barvas"].includes(area)) {
-    return res.status(404).send(
-      lang === "gd"
-        ? "Cha deach sgìre a lorg"
-        : "Area not found"
-    );
-  }
-
   try {
-    const load = (file) =>
-      JSON.parse(
-        fs.readFileSync(path.join(process.cwd(), file), "utf8")
+    const load = (file) => {
+      const filePath = path.join(
+        process.cwd(),
+        "public",
+        "data",
+        file
       );
+      if (!fs.existsSync(filePath)) {
+        throw new Error(`Missing data file: ${file}`);
+      }
+      return JSON.parse(fs.readFileSync(filePath, "utf8"));
+    };
 
     const black = load("black.json");
     const blue = load("wednesday.json");
     const green = load("green.json");
 
-    // --- Shared Black route (Brue + Barvas)
-    const blackBlock = black.results.find((r) =>
-      /brue|barvas/i.test(r.area)
+    // Black & Blue are shared Brue+Barvas
+    const blackBlock = black.results.find(r =>
+      /barvas|brue/i.test(r.area)
+    );
+    const blueBlock = blue.results.find(r =>
+      /barvas|brue/i.test(r.area)
     );
 
-    // --- Shared Blue route (Brue + Barvas)
-    const blueBlock = blue.results.find((r) =>
-      /brue|barvas/i.test(r.area)
-    );
-
-    // --- Green split routes
+    // Green is split
     const greenBlock =
       area === "brue"
-        ? green.results.find((r) => /brue/i.test(r.area))
-        : green.results.find((r) => /barvas/i.test(r.area));
+        ? green.results.find(r => /brue/i.test(r.area))
+        : green.results.find(r => /barvas/i.test(r.area));
 
     if (!blackBlock || !blueBlock || !greenBlock) {
       throw new Error("Required bin route not found in JSON");
     }
 
     const events = [
-      ...buildEvents(
-        "black",
-        t,
-        "Brue & Barvas",
-        toMonthMap(blackBlock.dates)
-      ),
-      ...buildEvents(
-        "blue",
-        t,
-        "Brue & Barvas",
-        toMonthMap(blueBlock.dates)
-      ),
+      ...buildEvents("black", t, "Brue & Barvas", toMonthMap(blackBlock.dates)),
+      ...buildEvents("blue", t, "Brue & Barvas", toMonthMap(blueBlock.dates)),
       ...buildEvents(
         "green",
         t,
@@ -107,10 +95,6 @@ export default function handler(req, res) {
         toMonthMap(greenBlock.dates)
       ),
     ];
-
-    if (!events.length) {
-      throw new Error("No calendar events generated");
-    }
 
     const { error, value } = createEvents(events);
     if (error) throw error;
