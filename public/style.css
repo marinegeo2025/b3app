@@ -211,6 +211,30 @@ body.green-page h1 {
   box-shadow: 0px 5px 10px rgba(0, 0, 0, 0.35);
   transform: translateY(-2px); /* subtle lift on hover */
 }
+/* 🎄 Festive message box (December only) */
+.festive-message {
+  margin-top: 24px;
+  padding: 16px 18px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #e6f9ea, #c9f2d6);
+  border: 2px solid #067f0b;
+  color: #065f2a;
+  font-weight: 600;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.15);
+  text-align: center;
+}
+
+.festive-message p {
+  margin: 0 0 10px 0;
+  font-size: 0.95rem;
+}
+
+.sparkle-wrap {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  font-size: 1.4rem;
+}
 /* ❄️ Snow Effect (December only) */
 .snow {
   pointer-events: none;
