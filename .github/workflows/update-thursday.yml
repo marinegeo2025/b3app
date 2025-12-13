@@ -2,7 +2,7 @@ name: Update Thursday Bin Schedule
 
 on:
   schedule:
-    - cron: "15 13 * * *"   # runs daily at 3:15 AM UTC
+    - cron: "15 13 * * *"   # runs daily at 3:15 AM UTC (14:15 BST)
   workflow_dispatch:
 
 jobs:
