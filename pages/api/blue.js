@@ -13,7 +13,7 @@ export default function handler(req, res) {
   }
 
   const json = JSON.parse(fs.readFileSync(filePath, "utf8"));
-  const results = json.results || [];
+  const results = json.results?.slice(0, 1) || [];
 
   if (!results.length) {
     return res.status(500).send(`<p>${t.noData}</p>`);
