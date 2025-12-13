@@ -45,7 +45,7 @@ export default function handler(req, res) {
         <h2>${block.area}</h2>
         ${
           block.coverage
-            ? `<p class="villages"><em>${block.coverage.join(", ")}</em></p>`
+            ? `<p class="villages"><em>${block.coverage}</em></p>`
             : ""
         }
         <ul>
