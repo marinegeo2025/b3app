@@ -44,13 +44,13 @@ function buildEvents(binKey, t, label, monthMap) {
   return events;
 }
 
-export default async function handler(req, res) {
+export default function handler(req, res) {
   const { area } = req.query; // brue | barvas
   const lang = req.query.lang === "gd" ? "gd" : "en";
   const t = translations[lang];
 
   try {
-    const loadJSON = (file) => {
+    const load = (file) => {
       const filePath = path.join(process.cwd(), file);
       if (!fs.existsSync(filePath)) {
         throw new Error(`Missing JSON file: ${file}`);
@@ -58,15 +58,20 @@ export default async function handler(req, res) {
       return JSON.parse(fs.readFileSync(filePath, "utf8"));
     };
 
-    const black = loadJSON("black.json");
-    const blue = loadJSON("wednesday.json");
-    const green = loadJSON("green.json");
+    const black = load("black.json");
+    const blue = load("blue.json");
+    const green = load("green.json");
 
-    // Black & Blue shared
-    const blackBlock = black.results.find(r => /brue|barvas/i.test(r.area));
-    const blueBlock = blue.results.find(r => /brue|barvas/i.test(r.area));
+    // --- Black & Blue shared (Brue + Barvas)
+    const blackBlock = {
+      dates: black.dates
+    };
 
-    // Green split
+    const blueBlock = blue.results.find(r =>
+      /barvas|brue/i.test(r.area)
+    );
+
+    // --- Green split
     const greenBlock =
       area === "brue"
         ? green.results.find(r => /brue/i.test(r.area))
