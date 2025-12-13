@@ -1,141 +1,100 @@
-import axios from "axios";
-import * as cheerio from "cheerio";
+import fs from "fs";
+import path from "path";
 import { createEvents } from "ics";
 import translations from "../../../lib/translations";
-import { validateBinTable } from "../../../lib/failsafe";
-
-const BLACK_URL =
-  "https://www.cne-siar.gov.uk/bins-and-recycling/waste-recycling-collections-lewis-and-harris/non-recyclable-waste-grey-bin-purple-sticker/wednesday-collections";
-const BLUE_URL =
-  "https://www.cne-siar.gov.uk/bins-and-recycling/waste-recycling-collections-lewis-and-harris/organic-food-and-garden-waste-and-mixed-recycling-blue-bin/thursday-collections";
-const GREEN_URL =
-  "https://www.cne-siar.gov.uk/bins-and-recycling/waste-recycling-collections-lewis-and-harris/glass-green-bin-collections/friday-collections";
 
 // Clean "21st" → 21
-function cleanDate(d) {
-  if (!d) return null;
-  const match = d.trim().match(/^(\d+)/);
-  return match ? parseInt(match[1], 10) : null;
+function cleanDay(str) {
+  const m = str.match(/^(\d{1,2})/);
+  return m ? parseInt(m[1], 10) : null;
 }
 
-function parseBinTable($, keyword) {
-  const headers = [];
-  $("thead th").each((i, th) => headers.push($(th).text().trim()));
-  if (headers.length === 0) {
-    $("tr").first().find("th,td").each((i, cell) => headers.push($(cell).text().trim()));
-  }
-
-  const data = {};
-  const rows = $("tbody tr").length ? $("tbody tr") : $("tr").slice(1);
-  rows.each((_, row) => {
-    const cells = $(row).find("th,td");
-    if (cells.length >= 2) {
-      const area = $(cells[0]).text().trim();
-      if (area.toLowerCase().includes(keyword.toLowerCase())) {
-        for (let i = 1; i < cells.length; i++) {
-          const month = headers[i];
-          const dates = $(cells[i]).text().trim();
-          if (month && dates && dates.toLowerCase() !== "n/a") {
-            const parts = dates
-              .split(",")
-              .map((x) => cleanDate(x))
-              .filter(Boolean);
-            if (parts.length) {
-              data[month] = (data[month] || []).concat(parts);
-            }
-          }
-        }
-      }
-    }
-  });
-  return data;
+function monthIndex(month) {
+  return new Date(`${month} 1, 2000`).getMonth();
 }
 
-function buildEvents(binType, t, areaName, data) {
-  const year = new Date().getFullYear();
+function buildEvents(title, dates) {
+  const now = new Date();
+  const currentYear = now.getFullYear();
+  const currentMonth = now.getMonth();
   const events = [];
-  for (const [month, days] of Object.entries(data)) {
-    for (const day of days) {
-      const monthIndex = new Date(`${month} 1, ${year}`).getMonth();
-      if (!isNaN(monthIndex)) {
-        events.push({
-          title: `${t[`${binType}Button`]} (${areaName})`,
-          start: [year, monthIndex + 1, day],
-        });
-      }
-    }
-  }
+
+  dates.forEach((d) => {
+    const [month, dayRaw] = d.split(" ");
+    const day = cleanDay(dayRaw);
+    const mIndex = monthIndex(month);
+    if (day === null || isNaN(mIndex)) return;
+
+    const year =
+      currentMonth === 11 && mIndex <= 2 ? currentYear + 1 : currentYear;
+
+    events.push({
+      title,
+      start: [year, mIndex + 1, day],
+    });
+  });
+
   return events;
 }
 
-export default async function handler(req, res) {
-  const { area } = req.query; // brue OR barvas
-  const lang = req.query.lang === "en" ? "en" : "gd";
+export default function handler(req, res) {
+  const { area } = req.query; // brue | barvas
+  const lang = req.query.lang === "gd" ? "gd" : "en";
   const t = translations[lang];
 
   try {
-    // --- Black bins (Brue + Barvas together) ---
-    const blackResp = await axios.get(BLACK_URL, { headers: { "User-Agent": "Mozilla/5.0" } });
-    const $black = cheerio.load(blackResp.data);
-    validateBinTable($black, { expectedMonths: [], requiredKeyword: "Brue" });
-    validateBinTable($black, { expectedMonths: [], requiredKeyword: "Barvas" });
+    const black = JSON.parse(fs.readFileSync("black.json", "utf8"));
+    const blue = JSON.parse(fs.readFileSync("blue.json", "utf8"));
+    const green = JSON.parse(fs.readFileSync("green.json", "utf8"));
 
-    const blackData = {
-      ...parseBinTable($black, "Brue"),
-      ...parseBinTable($black, "Barvas"),
-    };
-
-    // --- Blue bins (Brue + Barvas together) ---
-    const blueResp = await axios.get(BLUE_URL, { headers: { "User-Agent": "Mozilla/5.0" } });
-    const $blue = cheerio.load(blueResp.data);
-    validateBinTable($blue, { expectedMonths: [], requiredKeyword: "Brue" });
-    validateBinTable($blue, { expectedMonths: [], requiredKeyword: "Barvas" });
-
-    const blueData = {
-      ...parseBinTable($blue, "Brue"),
-      ...parseBinTable($blue, "Barvas"),
-    };
-
-    // --- Green bins (separate for each area) ---
-    const greenResp = await axios.get(GREEN_URL, { headers: { "User-Agent": "Mozilla/5.0" } });
-    const $green = cheerio.load(greenResp.data);
-    validateBinTable($green, { expectedMonths: [], requiredKeyword: "Brue" });
-    validateBinTable($green, { expectedMonths: [], requiredKeyword: "Barvas" });
-
-    const greenDataBrue = parseBinTable($green, "Brue");
-    const greenDataBarvas = parseBinTable($green, "Barvas");
-
-    // --- Build events ---
     let events = [];
-    if (area === "brue") {
-      events = [
-        ...buildEvents("black", t, "Brue & Barvas", blackData),
-        ...buildEvents("blue", t, "Brue & Barvas", blueData),
-        ...buildEvents("green", t, "Brue", greenDataBrue),
-      ];
-    } else if (area === "barvas") {
-      events = [
-        ...buildEvents("black", t, "Brue & Barvas", blackData),
-        ...buildEvents("blue", t, "Brue & Barvas", blueData),
-        ...buildEvents("green", t, "Barvas", greenDataBarvas),
-      ];
-    } else {
-      return res.status(404).send(lang === "en" ? "Area not found" : "Cha deach sgìre a lorg");
+
+    events.push(
+      ...buildEvents(
+        `${t.blackButton} (Brue & Barvas)`,
+        black.dates || []
+      )
+    );
+
+    const blueBlock = blue.results.find((r) =>
+      /brue|barvas/i.test(r.area)
+    );
+    if (blueBlock) {
+      events.push(
+        ...buildEvents(
+          `${t.blueButton} (Brue & Barvas)`,
+          blueBlock.dates
+        )
+      );
     }
 
-    if (events.length === 0) return res.status(500).send(t.noData);
+    const greenBlock = green.results.find((r) =>
+      /brue/i.test(r.area)
+    );
+    if (greenBlock) {
+      events.push(
+        ...buildEvents(
+          `${t.greenButton} (Brue)`,
+          greenBlock.dates
+        )
+      );
+    }
+
+    if (!events.length) {
+      return res.status(500).send(t.noData);
+    }
 
     const { error, value } = createEvents(events);
-    if (error) return res.status(500).send(t.errorFetching);
+    if (error) throw error;
 
     res.setHeader("Content-Type", "text/calendar; charset=utf-8");
     res.setHeader(
       "Content-Disposition",
-      `attachment; filename="${area}-bin-schedule-${lang}.ics"`
+      `attachment; filename="${area}-bins-${lang}.ics"`
     );
     res.send(value);
   } catch (err) {
-    console.error("Calendar build error:", err);
+    console.error(err);
     res.status(500).send(`${t.errorFetching} ${err.message}`);
   }
 }
