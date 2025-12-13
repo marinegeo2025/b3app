@@ -2,7 +2,7 @@ name: Auto-update Friday (Green Bin) JSON
 
 on:
   schedule:
-    - cron: "0 12 * * *"   # 12:00 UTC
+    - cron: "0 12 * * *"   # runs daily at 12:00 UTC
   workflow_dispatch:
 
 jobs:
@@ -12,51 +12,48 @@ jobs:
       contents: write
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repo
+        uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
           node-version: 20
 
-      - run: npm install axios cheerio
+      - name: Install dependencies
+        run: npm install axios cheerio
 
       - name: Scrape Brue Green Bin data
-  run: |
-    node - <<'EOF'
-    import axios from "axios";
-    import * as cheerio from "cheerio";
-    import fs from "fs";
+        run: |
+          node - <<'EOF'
+          import axios from "axios";
+          import * as cheerio from "cheerio";
+          import fs from "fs";
 
-    const URL = "https://www.cne-siar.gov.uk/bins-and-recycling/waste-recycling-collections-lewis-and-harris/glass-green-bin-collections/friday-collections";
+          const URL = "https://www.cne-siar.gov.uk/bins-and-recycling/waste-recycling-collections-lewis-and-harris/glass-green-bin-collections/friday-collections";
 
-    const { data } = await axios.get(URL, {
-      headers: { "User-Agent": "Mozilla/5.0" }
-    });
+          const { data } = await axios.get(URL, {
+            headers: { "User-Agent": "Mozilla/5.0" }
+          });
 
-    const $ = cheerio.load(data);
+          const $ = cheerio.load(data);
 
-    // 🔎 Get all visible text (robust against markup changes)
-    const pageText = $("body").text();
+          const pageText = $("body").text();
 
-    // 📅 Extract all month + day patterns
-    const dates = [...pageText.matchAll(/([A-Z][a-z]+)\s(\d{1,2}(st|nd|rd|th)?)/g)]
-      .map(m => `${m[1]} ${m[2]}`);
+          const dates = [...pageText.matchAll(/([A-Z][a-z]+)\s(\d{1,2}(st|nd|rd|th)?)/g)]
+            .map(m => `${m[1]} ${m[2]}`);
 
-    if (!dates.length) {
-      console.warn("⚠️ No dates found – page structure may have changed");
-    }
+          fs.writeFileSync("green.json", JSON.stringify({
+            lastUpdated: new Date().toISOString(),
+            results: [{
+              area: "Brue to Carloway",
+              dates,
+              coverage: ["Brue", "Arnol", "Bragar", "Shawbost", "Carloway"]
+            }]
+          }, null, 2));
 
-    fs.writeFileSync("green.json", JSON.stringify({
-      lastUpdated: new Date().toISOString(),
-      results: [{
-        area: "Brue to Carloway",
-        dates,
-        coverage: ["Brue", "Arnol", "Bragar", "Shawbost", "Carloway"]
-      }]
-    }, null, 2));
-
-    console.log(`✅ Green bin dates saved (${dates.length} found)`);
-    EOF
+          console.log(`✅ Green bin dates saved (${dates.length} found)`);
+          EOF
 
       - name: Commit and push updates
         run: |
