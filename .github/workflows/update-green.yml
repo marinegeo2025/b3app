@@ -20,39 +20,110 @@ jobs:
         with:
           node-version: 20
 
-      - name: Install dependencies
-        run: npm install axios cheerio
+      - name: Install Puppeteer
+        run: npm install puppeteer@21
 
-      - name: Scrape Brue Green Bin data
+      - name: Scrape Green Bin routes (Brue + Barvas)
         run: |
           node - <<'EOF'
-          import axios from "axios";
-          import * as cheerio from "cheerio";
+          import puppeteer from "puppeteer";
           import fs from "fs";
 
-          const URL = "https://www.cne-siar.gov.uk/bins-and-recycling/waste-recycling-collections-lewis-and-harris/glass-green-bin-collections/friday-collections";
+          const URL =
+            "https://www.cne-siar.gov.uk/bins-and-recycling/waste-recycling-collections-lewis-and-harris/glass-green-bin-collections/friday-collections";
 
-          const { data } = await axios.get(URL, {
-            headers: { "User-Agent": "Mozilla/5.0" }
+          const ROUTES = [
+            {
+              key: "brue",
+              title: "Brue to Carloway",
+              coverage: ["Brue", "Arnol", "Bragar", "Shawbost", "Carloway"],
+            },
+            {
+              key: "barvas",
+              title: "Barvas to Galson",
+              coverage: [
+                "Barvas",
+                "Ballantrushal",
+                "Shader",
+                "Airidhantuim",
+                "Borve",
+                "High Borve",
+                "Melbost Borve",
+                "South Galson",
+                "North Galson",
+                "Water Board Houses",
+                "An Allt Dubh",
+              ],
+            },
+          ];
+
+          const browser = await puppeteer.launch({
+            headless: true,
+            args: ["--no-sandbox"],
           });
 
-          const $ = cheerio.load(data);
+          const page = await browser.newPage();
+          await page.goto(URL, { waitUntil: "networkidle2", timeout: 120000 });
 
-          const pageText = $("body").text();
+          // Expand all accordion sections
+          await page.evaluate(() => {
+            document
+              .querySelectorAll(".accordion-pane__title button")
+              .forEach(btn => btn.click());
+          });
 
-          const dates = [...pageText.matchAll(/([A-Z][a-z]+)\s(\d{1,2}(st|nd|rd|th)?)/g)]
-            .map(m => `${m[1]} ${m[2]}`);
+          await page.waitForTimeout(3000);
 
-          fs.writeFileSync("green.json", JSON.stringify({
-            lastUpdated: new Date().toISOString(),
-            results: [{
-              area: "Brue to Carloway",
-              dates,
-              coverage: ["Brue", "Arnol", "Bragar", "Shawbost", "Carloway"]
-            }]
-          }, null, 2));
+          const results = await page.evaluate((ROUTES) => {
+            const out = [];
 
-          console.log(`✅ Green bin dates saved (${dates.length} found)`);
+            document.querySelectorAll(".accordion-pane").forEach(pane => {
+              const title =
+                pane.querySelector(".accordion-pane__title button")
+                  ?.textContent?.trim();
+
+              const route = ROUTES.find(r => r.title === title);
+              if (!route) return;
+
+              const dates = Array.from(pane.querySelectorAll("ol li"))
+                .map(li => li.textContent.trim())
+                .filter(Boolean);
+
+              if (dates.length) {
+                out.push({
+                  key: route.key,
+                  area: route.title,
+                  dates: [...new Set(dates)],
+                  coverage: route.coverage,
+                });
+              }
+            });
+
+            return out;
+          }, ROUTES);
+
+          await browser.close();
+
+          if (!results.length) {
+            throw new Error("No green bin routes found — CNES page may have changed");
+          }
+
+          fs.writeFileSync(
+            "green.json",
+            JSON.stringify(
+              {
+                lastUpdated: new Date().toISOString(),
+                results,
+              },
+              null,
+              2
+            )
+          );
+
+          console.log(
+            "✅ Green bin routes saved:",
+            results.map(r => r.area).join(", ")
+          );
           EOF
 
       - name: Commit and push updates
