@@ -13,25 +13,34 @@ export default function handler(req, res) {
 
   const json = JSON.parse(fs.readFileSync(filePath, "utf8"));
   const lastUpdated = new Date(json.lastUpdated).toLocaleString("en-GB", {
-    timeZone: "Europe/London"
+    timeZone: "Europe/London",
   });
 
+  res.setHeader("Content-Type", "text/html");
   res.send(`
-    <html>
-    <head>
-      <title>${t.blackTitle}</title>
-      <link rel="stylesheet" href="/style.css">
-    </head>
-    <body class="black-page">
-      <div class="container">
-        <h1>${t.blackTitle}</h1>
-        <ul>
-          ${json.dates.map(d => `<li>${d}</li>`).join("")}
-        </ul>
-        <p class="last-updated">${lastUpdated}</p>
-        <a href="/?lang=${lang}">${t.back}</a>
-      </div>
-    </body>
-    </html>
+<!DOCTYPE html>
+<html lang="${lang}">
+<head>
+  <meta charset="UTF-8">
+  <title>${t.blackTitle}</title>
+  <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body class="black-page">
+  <div class="container">
+    <h1><i class="fas fa-dumpster"></i> ${t.blackTitle}</h1>
+
+    <ul>
+      ${json.dates.map(d =>
+        `<li><i class="fas fa-calendar-day"></i> ${d}</li>`
+      ).join("")}
+    </ul>
+
+    <p class="last-updated"><em>LAST UPDATED: ${lastUpdated}</em></p>
+    <a class="back" href="/?lang=${lang}">${t.back}</a>
+  </div>
+</body>
+</html>
   `);
 }
