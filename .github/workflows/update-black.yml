@@ -1,0 +1,73 @@
+name: Update Black Bin (Brue & Barvas)
+
+on:
+  schedule:
+    - cron: "0 2 * * *"
+  workflow_dispatch:
+
+jobs:
+  scrape-black:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - run: npm install puppeteer@21
+
+      - name: Scrape CNES Black Bin
+        run: |
+          node - <<'EOF'
+          import puppeteer from "puppeteer";
+          import fs from "fs";
+
+          const url = "https://www.cne-siar.gov.uk/bins-and-recycling/waste-recycling-collections-lewis-and-harris/non-recyclable-waste-grey-bin-purple-sticker/wednesday-collections";
+
+          const browser = await puppeteer.launch({
+            headless: true,
+            args: ["--no-sandbox"]
+          });
+
+          const page = await browser.newPage();
+          await page.goto(url, { waitUntil: "networkidle2", timeout: 120000 });
+
+          await page.evaluate(() => {
+            document.querySelectorAll(".accordion-pane__title button").forEach(b => b.click());
+          });
+
+          await page.waitForTimeout(3000);
+
+          const data = await page.evaluate(() => {
+            const match = [];
+            document.querySelectorAll(".accordion-pane").forEach(section => {
+              const area = section.querySelector("button")?.textContent || "";
+              if (/brue|barvas/i.test(area)) {
+                const dates = Array.from(section.querySelectorAll("ol li"))
+                  .map(li => li.textContent.trim());
+                match.push(...dates);
+              }
+            });
+            return [...new Set(match)];
+          });
+
+          const result = {
+            lastUpdated: new Date().toISOString(),
+            area: "Brue & Barvas",
+            dates: data
+          };
+
+          fs.writeFileSync("black.json", JSON.stringify(result, null, 2));
+          await browser.close();
+          EOF
+
+      - run: |
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          git add black.json
+          git commit -m "Auto-update Black bin JSON" || echo "No changes"
+          git push
