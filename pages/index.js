@@ -121,12 +121,12 @@ export default function Home() {
             <div className="festive-message">
               <p>{t.festiveMessage}</p>
               <div className="sparkle-wrap">
-                <span>✨</span>
-                <span>🎅</span>
-                <span>🎄</span>
-                <span>⭐</span>
-                <span>🎁</span>
-              </div>
+  <span className="heart">✨</span>
+  <span className="heart">🎅</span>
+  <span className="heart">🎄</span>
+  <span className="heart">⭐</span>
+  <span className="heart">🎁</span>
+</div>
             </div>
           </>
         )}
