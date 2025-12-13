@@ -70,9 +70,11 @@ jobs:
           });
           EOF
 
-      - name: Commit and push if changed
-        run: |
-          git config --local user.email "actions@github.com"
-          git config --local user.name "GitHub Actions"
-          git add green.json
-          git diff --quiet && echo "No changes" || (git commit -m "Auto-update Friday bin JSON ($(date -u))" && git push)
+      - name: Commit and push updates
+  run: |
+    git config user.name github-actions
+    git config user.email github-actions@github.com
+    git pull --rebase origin main || true
+    git add green.json
+    git commit -m "Auto-update Green bin JSON ($(date -u))" || echo "No changes"
+    git push
