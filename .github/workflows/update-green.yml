@@ -2,7 +2,7 @@ name: Auto-update Friday (Green Bin) JSON
 
 on:
   schedule:
-    - cron: "1 0 * * *"  # Run daily at 00:01 UTC
+    - cron: "1 12 * * *"  # Run daily at 00:01 UTC
   workflow_dispatch:
 
 jobs:
