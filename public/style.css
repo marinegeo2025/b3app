@@ -5,25 +5,13 @@ body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
     "Helvetica Neue", Arial, sans-serif;
   text-align: center;
-}
-
-/* Default background */
-body {
   background: #f7f7f7;
 }
-body.home-page h1 {
-  color: #1DA1F2; /* 💙 blue */
-}
+
 /* Page-specific themes */
-body.black-page {
-  background: #f7f9fc; /* soft grey background */
-}
-body.blue-page {
-  background: #f0f8ff; /* AliceBlue */
-}
-body.green-page {
-  background: #e0ffe0; /* pale green */
-}
+body.black-page { background: #f7f9fc; }
+body.blue-page  { background: #f0f8ff; }
+body.green-page { background: #e0ffe0; }
 
 .container {
   max-width: 600px;
@@ -31,24 +19,23 @@ body.green-page {
   background: white;
   padding: 20px;
   border-radius: 12px;
-  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+  box-shadow: 0px 4px 10px rgba(0,0,0,0.1);
+  position: relative;
+  z-index: 1; /* keep above snow */
 }
 
+/* Headings */
 h1 {
   font-size: 24px;
-  color: #1DA1F2;   /* 💙 blue */
+  color: #067f0b;
   margin-bottom: 15px;
 }
-h2 {
-  font-size: 18px;
-  color: #444;
-  margin: 15px 0;
-}
-h3 {
-  margin-top: 10px;
-  font-size: 16px;
-  color: #333;
-}
+h2 { font-size: 18px; color: #444; margin: 15px 0; }
+h3 { font-size: 16px; color: #333; margin-top: 10px; }
+
+body.black-page h1 { color: #343a40; }
+body.blue-page  h1 { color: #007bff; }
+body.green-page h1 { color: #28a745; }
 
 .villages {
   font-size: 12px;
@@ -56,162 +43,68 @@ h3 {
   color: #666;
 }
 
-/* Bin Buttons + Banners */
-.bin-list {
-  list-style: none;
-  padding: 0;
-}
+/* Bin buttons */
+.bin-list { list-style: none; padding: 0; }
 
 .bin-link,
 .bin-link:visited {
-  display: flex;                /* use flexbox */
-  flex-direction: row;          /* icon + text side by side */
-  align-items: center;          /* vertical centering */
-  justify-content: center;      /* horizontal centering */
-
+  display: flex;
+  align-items: center;
+  justify-content: center;
   margin: 10px;
   padding: 15px;
   font-size: 22px;
   font-weight: 600;
+  color: #fff;
   text-decoration: none;
-  color: #ffffff;
   border-radius: 8px;
-  transition: transform 0.2s ease-in-out, opacity 0.2s ease-in-out;
   min-height: 100px;
-  background-size: cover;
-  background-position: center center;
+  transition: transform 0.2s ease;
   position: relative;
   overflow: hidden;
 }
-.icon {
-  margin-right: 10px;
-}
 
-.bin-link:hover {
-  transform: scale(1.05);
-}
+.bin-link:hover { transform: scale(1.05); }
 
-.bin-link * {
-  color: #ffffff;
-  position: relative;
-  z-index: 1;
-}
+.icon { margin-right: 10px; }
 
-/* Bin Button Colours */
 .btn-black { background-color: #343a40; }
-.btn-blue { background-color: #007bff; }
+.btn-blue  { background-color: #007bff; }
 .btn-green { background-color: #28a745; }
 
-/* Banner Images */
-.north-bin-link { background-image: url("/images/north-ness.jpeg"); }
-.south-bin-link { background-image: url("/images/south-ness.jpeg"); }
-
-.subtext {
-  font-size: 0.75em;
-  font-weight: normal;
-}
-
-.credit {
-  font-size: 11px;
-  margin-top: 20px;
-}
-
-.cute-text {
-  color: #1DA1F2;  /* 💙 blue */
-  font-size: 1rem;
-  font-weight: bold;
-  text-align: center;
-}
-
-/* Heartbeat Animation */
-@keyframes heartbeat {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.2); }
-  100% { transform: scale(1); }
-}
-.heart {
-  display: inline-block;
-  animation: heartbeat 1s infinite;
-}
-
-/* Scraper page list items */
-ul { list-style: none; padding: 0; }
-li {
-  background: #eef3f7;
-  margin: 6px 0;
-  padding: 8px;
-  border-radius: 6px;
-  font-size: 1rem;
-  text-align: center;
-}
-
-/* Ensure Font Awesome icons use their own font */
-i {
-  font-family: "Font Awesome 6 Free" !important;
-  font-weight: 900;
-}
-/* Themed page heading colors */
-body.black-page h1 {
-  color: #343a40; /* black bin */
-}
-
-body.blue-page h1 {
-  color: #007bff; /* blue bin */
-}
-
-body.green-page h1 {
-  color: #28a745; /* green bin */
-}
-/* Only shrink the top 3 bin buttons */
+/* Shrink top buttons */
 .bin-button {
-  min-height: 70px;      /* was ~100px */
-  padding: 12px 15px;    /* less padding */
-  font-size: 18px;       /* slightly smaller text */
+  min-height: 70px;
+  font-size: 18px;
 }
 
-.bin-button .icon {
-  font-size: 20px;       /* scale icons down a touch */
-  margin-right: 8px;
-}
-/* Header row with centered title and right button */
+/* Header */
 .header-row {
   display: flex;
-  justify-content: space-between; /* title left, button right */
-  align-items: flex-start;          /* align bottoms of text + button */
+  justify-content: space-between;
+  align-items: flex-start;
   margin-bottom: 20px;
-  position: relative;             /* keep items inside container */
 }
 
 .header-row h1 {
-  margin: 0;
   font-size: 32px;
-  font-weight: 700;
-  color: #067f0b;
+  margin: 0;
   text-align: left;
   flex: 1;
 }
 
-/* Button sits inside flex, not absolute */
 .lang-toggle {
   margin-left: 20px;
-  align-self: flex-start;
   padding: 8px 16px;
-  border-radius: 6px;
-  border: none;
   background: #067f0b;
-  color: white;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
   font-weight: bold;
   cursor: pointer;
-  font-size: 14px;
-  box-shadow: 0px 3px 6px rgba(0,0,0,0.25);
-  transition: box-shadow 0.2s ease, transform 0.2s ease;
 }
 
-.lang-toggle:hover {
-  box-shadow: 0px 5px 10px rgba(0, 0, 0, 0.35);
-  transform: translateY(-2px); /* subtle lift on hover */
-}
-/* 🎄 Festive message box (December only) */
+/* 🎄 Festive Message */
 .festive-message {
   margin-top: 24px;
   padding: 16px 18px;
@@ -220,22 +113,23 @@ body.green-page h1 {
   border: 2px solid #067f0b;
   color: #065f2a;
   font-weight: 600;
-  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.15);
-  text-align: center;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.15);
 }
 
 .festive-message p {
-  margin: 0 0 10px 0;
+  margin: 0 0 10px;
   font-size: 0.95rem;
 }
 
+/* ✨ Sparkle wave */
 .sparkle-wrap {
   display: flex;
   justify-content: center;
   gap: 8px;
   font-size: 1.4rem;
 }
-/* Heartbeat animation (already present, shown for clarity) */
+
+/* ❤️ Heartbeat wave animation */
 @keyframes heartbeat {
   0%   { transform: scale(1); }
   40%  { transform: scale(1.25); }
@@ -248,48 +142,30 @@ body.green-page h1 {
   animation: heartbeat 1.4s ease-in-out infinite;
 }
 
-/* 🌊 Wave timing */
 .sparkle-wrap .heart:nth-child(1) { animation-delay: 0s; }
 .sparkle-wrap .heart:nth-child(2) { animation-delay: 0.2s; }
 .sparkle-wrap .heart:nth-child(3) { animation-delay: 0.4s; }
 .sparkle-wrap .heart:nth-child(4) { animation-delay: 0.6s; }
 .sparkle-wrap .heart:nth-child(5) { animation-delay: 0.8s; }
-}
-/* ❄️ Snow Effect (December only) — enhanced */
+
+/* ❄️ Snow Effect */
 .snow {
   pointer-events: none;
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-
+  inset: 0;
+  z-index: 9999;
+  opacity: 0.85;
   background-image:
     radial-gradient(2px 2px at 20px 30px, white, transparent),
     radial-gradient(3px 3px at 80px 60px, white, transparent),
     radial-gradient(1.5px 1.5px at 140px 90px, white, transparent),
     radial-gradient(2.5px 2.5px at 200px 120px, white, transparent),
-    radial-gradient(1px 1px at 260px 160px, white, transparent),
-
-    radial-gradient(2px 2px at 40px 100px, white, transparent),
-    radial-gradient(3px 3px at 120px 140px, white, transparent),
-    radial-gradient(1.5px 1.5px at 180px 180px, white, transparent),
-    radial-gradient(2.5px 2.5px at 240px 220px, white, transparent),
-    radial-gradient(1px 1px at 300px 260px, white, transparent);
-
+    radial-gradient(1px 1px at 260px 160px, white, transparent);
   background-size: 300px 300px;
   animation: snow-fall 10s linear infinite;
-  z-index: 9999;
-  opacity: 0.85;
 }
 
 @keyframes snow-fall {
-  from {
-    background-position: 0 -300px;
-  }
-  to {
-    background-position: 0 100vh;
-  }
+  from { background-position: 0 -300px; }
+  to   { background-position: 0 100vh; }
 }
-
-
