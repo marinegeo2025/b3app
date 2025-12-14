@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2025-12-10T03:57:49.849Z",
+  "lastUpdated": "2025-12-14T13:43:18.281Z",
   "count": 4,
   "results": [
     {
@@ -8,7 +8,8 @@
         "December 11th",
         "January 3rd  (Rescheduled New Year collection)",
         "January 22nd"
-      ]
+      ],
+      "coverage": ""
     },
     {
       "area": "North Tolsta / Gress",
@@ -16,7 +17,8 @@
         "December 11th",
         "January 3rd  (Rescheduled New Year collection)",
         "January 22nd"
-      ]
+      ],
+      "coverage": "North Tolsta, Gress, Main Road up to Back, Inner Coll, Brevig, Vatisker"
     },
     {
       "area": "Point / Melbost / Parkend",
@@ -24,7 +26,8 @@
         "December 18th",
         "January 8th",
         "January 29th"
-      ]
+      ],
+      "coverage": "Parkend, Holm Road, Holm, Melbost, Branahuie, Braighe Road, Aiginish, New Garrabost up to Bayble junction, Upper Garrabost Road, Claypark, Swordale, Knock, Seaview Knock"
     },
     {
       "area": "Goathill",
@@ -32,7 +35,8 @@
         "December 4th",
         "December 27th  (Rescheduled Christmas Day collection)",
         "January 15th"
-      ]
+      ],
+      "coverage": "Matheson Rd, Goathill Rd, Lister Pl, Fleming Pl, Doig Crescent, Columbia Pl, Barony Sq, Jamieson Dr, Berisay Pl, Kennedy Terr, Balmerino Dr, Westview Terr, Maclennan Pl, Goathill Crescent, Leverhulme Dr, Robertson Rd, Ripley Pl, Stag Rd, Mackenzie St, Plantation Rd, Rose St, McCallum Pl, Scotland St, Keith St, Mackay Court, New St, Lewis St, Garden Rd, Francis St, Church St, Haldane Court, Gibson Gardens"
     }
   ]
 }
