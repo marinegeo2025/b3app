@@ -1,42 +1,40 @@
 {
-  "lastUpdated": "2026-01-08T13:57:17.264Z",
+  "lastUpdated": "2026-01-09T13:54:34.964Z",
   "count": 4,
   "results": [
     {
       "area": "Barvas / Brue / Arnol / Bragar / Water Board Houses",
       "dates": [
-        "December 11th",
-        "January 3rd  (Rescheduled New Year collection)",
-        "January 22nd"
+        "January 22nd",
+        "February 12th"
       ],
       "coverage": ""
     },
     {
       "area": "North Tolsta / Gress",
       "dates": [
-        "December 11th",
-        "January 3rd  (Rescheduled New Year collection)",
-        "January 22nd"
+        "January 22nd",
+        "February 12th"
       ],
       "coverage": "North Tolsta, Gress, Main Road up to Back, Inner Coll, Brevig, Vatisker"
     },
     {
       "area": "Point / Melbost / Parkend",
       "dates": [
-        "December 18th",
         "January 8th",
-        "January 29th"
+        "January 29th",
+        "February 19th"
       ],
       "coverage": "Parkend, Holm Road, Holm, Melbost, Branahuie, Braighe Road, Aiginish, New Garrabost up to Bayble junction, Upper Garrabost Road, Claypark, Swordale, Knock, Seaview Knock"
     },
     {
       "area": "Goathill",
       "dates": [
-        "December 4th",
-        "December 27th  (Rescheduled Christmas Day collection)",
-        "January 15th"
+        "January 15th",
+        "February 5th",
+        "February 26th"
       ],
-      "coverage": "Matheson Rd, Goathill Rd, Lister Pl, Fleming Pl, Doig Crescent, Columbia Pl, Barony Sq, Jamieson Dr, Berisay Pl, Kennedy Terr, Balmerino Dr, Westview Terr, Maclennan Pl, Goathill Crescent, Leverhulme Dr, Robertson Rd, Ripley Pl, Stag Rd, Mackenzie St, Plantation Rd, Rose St, McCallum Pl, Scotland St, Keith St, Mackay Court, New St, Lewis St, Garden Rd, Francis St, Church St, Haldane Court, Gibson Gardens"
+      "coverage": "Matheson Rd, Goathill Rd, Lister Pl, Fleming Pl, Doig Crescent, Columbia Pl, Barony Sq, Jamieson Dr, Berisay Pl, Kennedy Terr, Balmerino Dr, Westview Terr, Maclennan Pl, Goathill Crescent, Leverhulme Dr, Robertson Rd, Ripley Pl, Stag Rd, Mackenzie St, Plantation Rd, Rose St, McCallum Pl, Scotland St, Keith St, Mackay Court, New St, Lewis St, Garden Rd, Francis St, Church St, Gibson Gardens"
     }
   ]
 }
