@@ -1,18 +1,21 @@
 {
-  "lastUpdated": "2026-01-19T12:38:28.689Z",
+  "lastUpdated": "2026-01-21T12:39:06.166Z",
   "count": 2,
   "results": [
     {
       "area": "Brue to Carloway",
       "dates": [
-        "January 16th"
+        "March 20th",
+        "May 22nd"
       ],
       "coverage": "Brue, Arnol, Bragar, Shawbost, Carloway"
     },
     {
       "area": "Barvas to Galson",
       "dates": [
-        "February 6th"
+        "February 6th",
+        "April 10th",
+        "June 12th"
       ],
       "coverage": "Barvas, Ballantrushal, Shader, Airidhantuim, Borve, High Borve, Melbost Borve, South Galson, North Galson, Water Board Houses, An Allt Dubh"
     }
