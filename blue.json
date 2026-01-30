@@ -1,38 +1,57 @@
 {
-  "lastUpdated": "2026-01-29T14:10:15.555Z",
+  "lastUpdated": "2026-01-30T14:07:35.841Z",
   "count": 4,
   "results": [
     {
       "area": "Barvas / Brue / Arnol / Bragar / Water Board Houses",
       "dates": [
-        "January 22nd",
-        "February 12th"
+        "February 12th",
+        "March 5th",
+        "March 26th",
+        "April 16th",
+        "May 7th",
+        "May 28th",
+        "June 18th"
       ],
       "coverage": ""
     },
     {
       "area": "North Tolsta / Gress",
       "dates": [
-        "January 22nd",
-        "February 12th"
+        "February 12th",
+        "March 5th",
+        "March 26th",
+        "April 16th",
+        "May 7th",
+        "May 28th",
+        "June 18th"
       ],
       "coverage": "North Tolsta, Gress, Main Road up to Back, Inner Coll, Brevig, Vatisker"
     },
     {
       "area": "Point / Melbost / Parkend",
       "dates": [
-        "January 8th",
         "January 29th",
-        "February 19th"
+        "February 19th",
+        "March 12th",
+        "April 2nd",
+        "April 23rd",
+        "May 14th",
+        "June 4th",
+        "June 25th"
       ],
       "coverage": "Parkend, Holm Road, Holm, Melbost, Branahuie, Braighe Road, Aiginish, New Garrabost up to Bayble junction, Upper Garrabost Road, Claypark, Swordale, Knock, Seaview Knock"
     },
     {
       "area": "Goathill",
       "dates": [
-        "January 15th",
         "February 5th",
-        "February 26th"
+        "February 26th",
+        "March 19th",
+        "April 9th",
+        "April 30th",
+        "May 21st",
+        "June 11th"
       ],
       "coverage": "Matheson Rd, Goathill Rd, Lister Pl, Fleming Pl, Doig Crescent, Columbia Pl, Barony Sq, Jamieson Dr, Berisay Pl, Kennedy Terr, Balmerino Dr, Westview Terr, Maclennan Pl, Goathill Crescent, Leverhulme Dr, Robertson Rd, Ripley Pl, Stag Rd, Mackenzie St, Plantation Rd, Rose St, McCallum Pl, Scotland St, Keith St, Mackay Court, New St, Lewis St, Garden Rd, Francis St, Church St, Gibson Gardens"
     }
