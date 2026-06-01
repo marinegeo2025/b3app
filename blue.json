@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-05-31T15:03:32.820Z",
+  "lastUpdated": "2026-06-01T19:03:57.871Z",
   "count": 4,
   "results": [
     {
@@ -9,7 +9,16 @@
         "April 16th",
         "May 7th",
         "May 28th",
-        "June 18th"
+        "June 18th",
+        "July 9th",
+        "July 30th",
+        "August 20th",
+        "September 10th",
+        "October 1st",
+        "October 22nd",
+        "November 12th",
+        "December 3rd",
+        "December 24th"
       ],
       "coverage": ""
     },
@@ -20,30 +29,51 @@
         "April 16th",
         "May 7th",
         "May 28th",
-        "June 18th"
+        "June 18th",
+        "July 9th",
+        "July 30th",
+        "August 20th",
+        "September 10th",
+        "October 1st",
+        "October 22nd",
+        "November 12th",
+        "December 3rd",
+        "December 24th"
       ],
       "coverage": "North Tolsta, Gress, Main Road up to Back, Inner Coll, Brevig, Vatisker"
     },
     {
       "area": "Point / Melbost / Parkend",
       "dates": [
-        "April 2nd",
-        "April 23rd",
-        "May 14th",
         "June 4th",
-        "June 25th"
+        "June 25th",
+        "July 16th",
+        "August 6th",
+        "August 27th",
+        "September 17th",
+        "October 8th",
+        "October 29th",
+        "November 19th",
+        "December 10th",
+        "December 31st"
       ],
       "coverage": "Parkend, Holm Road, Holm, Melbost, Branahuie, Braighe Road, Aiginish, New Garrabost up to Bayble junction, Upper Garrabost Road, Claypark, Swordale, Knock, Seaview Knock"
     },
     {
       "area": "Goathill",
       "dates": [
-        "April 9th",
-        "April 30th",
-        "May 21st",
-        "June 11th"
+        "June 11th",
+        "July 2nd",
+        "July 23rd",
+        "August 13th",
+        "September 3rd",
+        "September 24th",
+        "October 15th",
+        "November 5th",
+        "November 26th",
+        "December 17th"
       ],
-      "coverage": "Matheson Rd, Goathill Rd, Lister Pl, Fleming Pl, Doig Crescent, Columbia Pl, Barony Sq, Jamieson Dr, Berisay Pl, Kennedy Terr, Balmerino Dr, Westview Terr, Maclennan Pl, Goathill Crescent, Leverhulme Dr, Robertson Rd, Ripley Pl, Stag Rd, Mackenzie St, Plantation Rd, Rose St, McCallum Pl, Scotland St, Keith St, Mackay Court, New St, Lewis St, Garden Rd, Francis St, Church St, Gibson Gardens, Haldane Court"
+      "coverage": "Matheson Road, Goathill Road, Lister Place, Fleming Place, Doig Crescent, Columbia Place, Barony Square, Jamieson Drive, Berisay Place, Kennedy Terrace, Balmerino Drive, Westview Terrace, Maclennan Place, Goathill Crescent, Leverhulme Drive, Robertson Road, Ripley Place, Stag Road, Mackenzie Street, Plantation Road, Rose Street, McCallum Place, Scotland Street, Keith Street, Mackay Court, New Street, Lewis Street, Garden Road, Francis Street, Church Street, Gibson Gardens, Haldane Court"
     }
   ]
 }
