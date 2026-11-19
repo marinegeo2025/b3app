@@ -1,77 +1,53 @@
 {
-  "lastUpdated": "2026-11-18T21:36:41.300Z",
+  "lastUpdated": "2026-11-19T21:46:14.552Z",
   "count": 4,
   "results": [
     {
       "area": "Barvas / Brue / Arnol / Bragar / Water Board Houses",
       "dates": [
-        "March 26th",
-        "April 16th",
-        "May 7th",
-        "May 28th",
-        "June 18th",
-        "July 9th",
-        "July 30th",
-        "August 20th",
-        "September 10th",
-        "October 1st",
-        "October 22nd",
-        "November 12th",
         "December 3rd",
-        "December 24th"
+        "December 24th",
+        "January 14th",
+        "February 4th",
+        "February 25th",
+        "March 18th"
       ],
       "coverage": ""
     },
     {
       "area": "North Tolsta / Gress",
       "dates": [
-        "March 26th",
-        "April 16th",
-        "May 7th",
-        "May 28th",
-        "June 18th",
-        "July 9th",
-        "July 30th",
-        "August 20th",
-        "September 10th",
-        "October 1st",
-        "October 22nd",
-        "November 12th",
         "December 3rd",
-        "December 24th"
+        "December 24th",
+        "January 14th",
+        "February 4th",
+        "February 25th",
+        "March 18th"
       ],
       "coverage": "North Tolsta, Gress, Main Road up to Back, Inner Coll, Brevig, Vatisker"
     },
     {
       "area": "Point / Melbost / Parkend",
       "dates": [
-        "June 4th",
-        "June 25th",
-        "July 16th",
-        "August 6th",
-        "August 27th",
-        "September 17th",
-        "October 8th",
-        "October 29th",
         "November 19th",
         "December 10th",
-        "December 31st"
+        "December 31st",
+        "January 21st",
+        "February 11th",
+        "March 4th",
+        "March 25th"
       ],
       "coverage": "Parkend, Holm Road, Holm, Melbost, Branahuie, Braighe Road, Aiginish, New Garrabost up to Bayble junction, Upper Garrabost Road, Claypark, Swordale, Knock, Seaview Knock"
     },
     {
       "area": "Goathill",
       "dates": [
-        "June 11th",
-        "July 2nd",
-        "July 23rd",
-        "August 13th",
-        "September 3rd",
-        "September 24th",
-        "October 15th",
-        "November 5th",
         "November 26th",
-        "December 17th"
+        "December 17th",
+        "January 7th",
+        "January 28th",
+        "February 18th",
+        "March 11th"
       ],
       "coverage": "Matheson Road, Goathill Road, Lister Place, Fleming Place, Doig Crescent, Columbia Place, Barony Square, Jamieson Drive, Berisay Place, Kennedy Terrace, Balmerino Drive, Westview Terrace, Maclennan Place, Goathill Crescent, Leverhulme Drive, Robertson Road, Ripley Place, Stag Road, Mackenzie Street, Plantation Road, Rose Street, McCallum Place, Scotland Street, Keith Street, Mackay Court, New Street, Lewis Street, Garden Road, Francis Street, Church Street, Gibson Gardens, Haldane Court"
     }
